@@ -3,7 +3,7 @@
     "name": "Campus Conectado",
     "slug": "campus-conectado",
     "scheme": "campus-conectado",
-    "version": "1.0.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/campus-icon.png",
@@ -23,7 +23,7 @@
     ],
     "android": {
       "package": "br.edu.campusconectado.demo",
-      "versionCode": 2,
+      "versionCode": 3,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
