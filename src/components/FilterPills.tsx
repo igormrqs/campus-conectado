@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { ThemedText } from './ThemedText';
 import { colors, radius, spacing, layout } from '@/src/design/tokens';
+import { triggerHaptic } from '@/src/design/platform-utils';
 
 export type TaskFilterType = 'all' | 'pending' | 'completed';
 
@@ -29,13 +29,9 @@ export function FilterPills({ activeFilter, onSelect, counts }: FilterPillsProps
     { key: 'completed', label: 'Concluídas', count: counts?.completed },
   ];
 
-  const handleSelect = (key: TaskFilterType) => {
+  const handleSelect = async (key: TaskFilterType) => {
     if (key === activeFilter) return;
-    try {
-      Haptics.selectionAsync();
-    } catch {
-      // safe fallback
-    }
+    await triggerHaptic('selection');
     onSelect(key);
   };
 

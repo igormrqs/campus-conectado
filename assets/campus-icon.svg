@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Fundo Papel Quente -->
+  <rect width="1024" height="1024" fill="#F7F5EF" />
+
+  <!-- Caderno Editorial Principal (Tinta #171A21) -->
+  <rect x="215" y="184" width="594" height="656" rx="76" ry="76" fill="#171A21" />
+
+  <!-- Lombada Costurada (Azul Elétrico #314BCE) -->
+  <rect x="215" y="184" width="112" height="656" rx="76" ry="76" fill="#314BCE" />
+  <rect x="260" y="184" width="67" height="656" fill="#314BCE" />
+
+  <!-- Marcador / Fita de Leitura (Lima Suave #DBF57A) -->
+  <path d="M 624 184 L 716 184 L 716 430 L 670 380 L 624 430 Z" fill="#DBF57A" />
+
+  <!-- Pautas Internas Muted -->
+  <line x1="380" y1="360" x2="750" y2="360" stroke="#333945" stroke-width="6" stroke-linecap="round" />
+  <line x1="380" y1="440" x2="750" y2="440" stroke="#333945" stroke-width="6" stroke-linecap="round" />
+  <line x1="380" y1="520" x2="750" y2="520" stroke="#333945" stroke-width="6" stroke-linecap="round" />
+  <line x1="380" y1="600" x2="750" y2="600" stroke="#333945" stroke-width="6" stroke-linecap="round" />
+
+  <!-- Selo Orbital de Ritmo (Círculo Azul com Anel Lima) -->
+  <circle cx="670" cy="656" r="62" fill="none" stroke="#DBF57A" stroke-width="12" />
+  <circle cx="670" cy="656" r="40" fill="#314BCE" />
+  <!-- Checkmark dentro do selo -->
+  <path d="M 655 656 L 666 667 L 688 645" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -11,6 +11,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTasks, Task } from '@/src/features/tasks';
 import { colors, spacing, radius } from '@/src/design/tokens';
 import { isOverdue } from '@/src/design/date-utils';
+import { showAlert } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
 import { Button } from '@/src/components/Button';
 import { TaskCard } from '@/src/components/TaskCard';
@@ -21,7 +22,7 @@ import { Header } from '@/src/components/Header';
 export default function ActivitiesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { tasks, isHydrated, toggleTask, deleteTask } = useTasks();
+  const { tasks, isHydrated, error, retryHydration, toggleTask, deleteTask } = useTasks();
 
   const [activeFilter, setActiveFilter] = useState<TaskFilterType>('all');
   const [selectedDiscipline, setSelectedDiscipline] = useState<string | null>(null);
@@ -76,6 +77,22 @@ export default function ActivitiesScreen() {
     });
   };
 
+  const handleToggleTask = async (id: string) => {
+    try {
+      await toggleTask(id);
+    } catch (err: any) {
+      showAlert('Erro', err?.message || 'Falha ao atualizar status da atividade.');
+    }
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    try {
+      await deleteTask(id);
+    } catch (err: any) {
+      showAlert('Erro', err?.message || 'Falha ao excluir atividade.');
+    }
+  };
+
   if (!isHydrated) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top, backgroundColor: colors.paper }]}>
@@ -105,6 +122,28 @@ export default function ActivitiesScreen() {
           }
         />
       </View>
+
+      {error ? (
+        <View style={styles.errorBanner}>
+          <View style={styles.errorIcon}>
+            <Feather name="alert-triangle" size={20} color={colors.coral} />
+          </View>
+          <View style={styles.errorContent}>
+            <ThemedText variant="headline" color={colors.coral}>
+              Erro de carregamento
+            </ThemedText>
+            <ThemedText variant="caption" color={colors.muted}>
+              {error}
+            </ThemedText>
+          </View>
+          <Button
+            title="Tentar"
+            size="sm"
+            variant="outline"
+            onPress={() => retryHydration().catch(() => {})}
+          />
+        </View>
+      ) : null}
 
       <View style={styles.filterSection}>
         <FilterPills
@@ -175,9 +214,9 @@ export default function ActivitiesScreen() {
               key={task.id}
               task={task}
               index={idx}
-              onToggle={toggleTask}
+              onToggle={handleToggleTask}
               onPress={handleTaskPress}
-              onDelete={deleteTask}
+              onDelete={handleDeleteTask}
             />
           ))
         )}
@@ -195,6 +234,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F3',
+    borderColor: colors.coral,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  errorIcon: {
+    marginRight: spacing.sm,
+  },
+  errorContent: {
+    flex: 1,
+    marginRight: spacing.sm,
   },
   filterSection: {
     paddingHorizontal: spacing.md,

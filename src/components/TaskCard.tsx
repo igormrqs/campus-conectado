@@ -3,7 +3,6 @@ import {
   View,
   Pressable,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -15,11 +14,11 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { ThemedText } from './ThemedText';
 import { Task } from '@/src/features/tasks';
 import { colors, radius, spacing, layout, motion } from '@/src/design/tokens';
 import { isOverdue, formatFriendlyDate } from '@/src/design/date-utils';
+import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-utils';
 
 export interface TaskCardProps {
   task: Task;
@@ -48,11 +47,7 @@ export function TaskCard({
   }));
 
   const handleToggle = async () => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {
-      // Haptics safe fallback
-    }
+    await triggerHaptic('light');
 
     if (!reducedMotion) {
       checkScale.value = withSequence(
@@ -62,28 +57,27 @@ export function TaskCard({
       );
     }
 
-    await onToggle(task.id);
+    try {
+      await onToggle(task.id);
+    } catch (err: any) {
+      showAlert('Erro ao atualizar', err?.message || 'Falha ao sincronizar alteração.');
+    }
   };
 
   const handleDeletePrompt = () => {
-    Alert.alert(
+    confirmAction(
       'Excluir atividade',
       `Tem certeza que deseja excluir "${task.title}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            } catch {
-              // safe fallback
-            }
-            await onDelete(task.id);
-          },
-        },
-      ]
+      async () => {
+        await triggerHaptic('warning');
+        try {
+          await onDelete(task.id);
+        } catch (err: any) {
+          showAlert('Erro ao excluir', err?.message || 'Falha ao remover a atividade.');
+        }
+      },
+      'Excluir',
+      'Cancelar'
     );
   };
 

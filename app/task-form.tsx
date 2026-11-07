@@ -4,15 +4,14 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useTasks, validateTaskInput, TaskInput, TaskFieldErrors } from '@/src/features/tasks';
 import { colors, spacing, radius, layout } from '@/src/design/tokens';
@@ -22,10 +21,12 @@ import {
   formatFriendlyDate,
   parseCivilDate,
 } from '@/src/design/date-utils';
+import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
 import { Button } from '@/src/components/Button';
 import { Toast } from '@/src/components/Toast';
 import { Header } from '@/src/components/Header';
+import { EmptyState } from '@/src/components/EmptyState';
 
 const SUGGESTED_DISCIPLINES = [
   'Desenvolvimento Mobile',
@@ -43,7 +44,7 @@ export default function TaskFormScreen() {
   const taskId = params.id;
   const isEditing = !!taskId;
 
-  const { tasks, addTask, updateTask, deleteTask } = useTasks();
+  const { tasks, isHydrated, addTask, updateTask, deleteTask } = useTasks();
 
   const existingTask = useMemo(() => {
     if (!taskId) return null;
@@ -66,7 +67,7 @@ export default function TaskFormScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync state if existingTask loads asynchronously
+  // Sync state when existingTask becomes available
   useEffect(() => {
     if (existingTask) {
       setTitle(existingTask.title);
@@ -76,6 +77,36 @@ export default function TaskFormScreen() {
     }
   }, [existingTask]);
 
+  // Loading state while waiting for storage hydration
+  if (!isHydrated) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top, backgroundColor: colors.paper }]}>
+        <ActivityIndicator size="large" color={colors.ink} />
+        <ThemedText variant="body" color={colors.muted} style={{ marginTop: spacing.md }}>
+          Carregando informações da atividade...
+        </ThemedText>
+      </View>
+    );
+  }
+
+  // If editing an ID that does not exist in tasks, show explicit error and block save
+  if (isEditing && !existingTask) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.paper }]}>
+        <Header title="Atividade não encontrada" showBack />
+        <View style={styles.notFoundWrapper}>
+          <EmptyState
+            title="Atividade inexistente"
+            description="O identificador fornecido não corresponde a nenhuma atividade cadastrada ou ela foi removida."
+            actionTitle="Voltar ao início"
+            onAction={() => router.replace('/')}
+            iconName="alert-triangle"
+          />
+        </View>
+      </View>
+    );
+  }
+
   const validate = (): boolean => {
     const input: TaskInput = {
       title: title.trim(),
@@ -84,16 +115,8 @@ export default function TaskFormScreen() {
       dueAt: dueAt.trim(),
     };
 
-    let fieldErrors: TaskFieldErrors = {};
-    try {
-      fieldErrors = validateTaskInput(input);
-    } catch {
-      // In case Worker A validation throws or is pending
-      if (!input.title) fieldErrors.title = 'Título é obrigatório';
-      if (!input.discipline) fieldErrors.discipline = 'Disciplina é obrigatória';
-      if (!input.dueAt) fieldErrors.dueAt = 'Prazo é obrigatório';
-    }
-
+    // Use hook validation directly without swallowing errors
+    const fieldErrors = validateTaskInput(input);
     setErrors(fieldErrors);
     return Object.keys(fieldErrors).length === 0;
   };
@@ -102,11 +125,7 @@ export default function TaskFormScreen() {
     if (isSubmitting) return;
 
     if (!validate()) {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      } catch {
-        // safe fallback
-      }
+      await triggerHaptic('warning');
       return;
     }
 
@@ -129,48 +148,35 @@ export default function TaskFormScreen() {
         setToastMessage('Atividade cadastrada com sucesso!');
       }
 
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } catch {
-        // safe fallback
-      }
+      await triggerHaptic('success');
 
       setTimeout(() => {
         router.back();
-      }, 500);
+      }, 450);
     } catch (err: any) {
-      setGeneralError(err?.message || 'Falha ao salvar atividade. Tente novamente.');
+      setGeneralError(err?.message || 'Falha ao salvar atividade no armazenamento local.');
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = () => {
     if (!taskId) return;
-    Alert.alert(
+    confirmAction(
       'Excluir atividade',
       'Tem certeza de que deseja excluir esta atividade?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsSubmitting(true);
-              await deleteTask(taskId);
-              try {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-              } catch {
-                // safe fallback
-              }
-              router.back();
-            } catch (err: any) {
-              setGeneralError('Não foi possível excluir a atividade.');
-              setIsSubmitting(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setIsSubmitting(true);
+          await triggerHaptic('warning');
+          await deleteTask(taskId);
+          router.back();
+        } catch (err: any) {
+          setGeneralError(err?.message || 'Não foi possível excluir a atividade.');
+          setIsSubmitting(false);
+        }
+      },
+      'Excluir',
+      'Cancelar'
     );
   };
 
@@ -325,14 +331,31 @@ export default function TaskFormScreen() {
               </ThemedText>
             </View>
 
-            <Button
-              title="Outra data"
-              size="sm"
-              variant="outline"
-              onPress={() => setShowDatePicker(true)}
-              leftIcon={<Feather name="edit-3" size={14} color={colors.ink} />}
-            />
+            {Platform.OS !== 'web' ? (
+              <Button
+                title="Outra data"
+                size="sm"
+                variant="outline"
+                onPress={() => setShowDatePicker(true)}
+                leftIcon={<Feather name="edit-3" size={14} color={colors.ink} />}
+              />
+            ) : null}
           </View>
+
+          {/* On web: provide direct text input for custom date YYYY-MM-DD */}
+          {Platform.OS === 'web' && (
+            <TextInput
+              value={dueAt}
+              onChangeText={(txt) => {
+                setDueAt(txt);
+                if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
+              }}
+              placeholder="AAAA-MM-DD"
+              placeholderTextColor={colors.muted}
+              accessibilityLabel="Prazo YYYY-MM-DD"
+              style={[styles.input, { marginBottom: spacing.xs }, errors.dueAt && styles.inputError]}
+            />
+          )}
 
           {/* Quick Date Chips */}
           <View style={styles.chipsContainer}>
@@ -365,7 +388,7 @@ export default function TaskFormScreen() {
             })}
           </View>
 
-          {showDatePicker && (
+          {Platform.OS !== 'web' && showDatePicker && (
             <DateTimePicker
               value={pickerDate}
               mode="date"
@@ -437,6 +460,15 @@ export default function TaskFormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  notFoundWrapper: {
+    padding: spacing.md,
   },
   scrollContent: {
     paddingHorizontal: spacing.md,

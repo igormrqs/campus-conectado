@@ -3,7 +3,6 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -11,7 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTasks, Task } from '@/src/features/tasks';
 import { colors, spacing, radius } from '@/src/design/tokens';
-import { formatEditorialDate, isOverdue, getTodayDateString } from '@/src/design/date-utils';
+import { formatEditorialDate, isOverdue } from '@/src/design/date-utils';
+import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
 import { Button } from '@/src/components/Button';
 import { ProgressCard } from '@/src/components/ProgressCard';
@@ -25,7 +25,6 @@ export default function HomeScreen() {
   const { tasks, isHydrated, error, retryHydration, toggleTask, deleteTask, resetDemo } = useTasks();
 
   const editorialDate = useMemo(() => formatEditorialDate(), []);
-  const todayStr = useMemo(() => getTodayDateString(), []);
 
   // Compute stats
   const totalCount = tasks.length;
@@ -53,24 +52,37 @@ export default function HomeScreen() {
     });
   };
 
+  const handleToggleTask = async (id: string) => {
+    try {
+      await toggleTask(id);
+    } catch (err: any) {
+      showAlert('Erro', err?.message || 'Falha ao atualizar status da atividade.');
+    }
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    try {
+      await deleteTask(id);
+    } catch (err: any) {
+      showAlert('Erro', err?.message || 'Falha ao excluir a atividade.');
+    }
+  };
+
   const handleResetDemoPrompt = () => {
-    Alert.alert(
+    confirmAction(
       'Reiniciar demonstração',
       'Deseja restaurar as atividades iniciais do semestre?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Restaurar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await resetDemo();
-            } catch (err) {
-              Alert.alert('Aviso', 'Não foi possível reiniciar a demo.');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await triggerHaptic('warning');
+          await resetDemo();
+          await triggerHaptic('success');
+        } catch (err: any) {
+          showAlert('Aviso', 'Não foi possível reiniciar a demo.');
+        }
+      },
+      'Restaurar',
+      'Cancelar'
     );
   };
 
@@ -125,7 +137,7 @@ export default function HomeScreen() {
               title="Tentar"
               size="sm"
               variant="outline"
-              onPress={() => retryHydration()}
+              onPress={() => retryHydration().catch(() => {})}
             />
           </View>
         ) : null}
@@ -163,9 +175,9 @@ export default function HomeScreen() {
               key={task.id}
               task={task}
               index={idx}
-              onToggle={toggleTask}
+              onToggle={handleToggleTask}
               onPress={handleTaskPress}
-              onDelete={deleteTask}
+              onDelete={handleDeleteTask}
             />
           ))
         )}
