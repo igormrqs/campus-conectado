@@ -52,7 +52,7 @@ foi apenas validado sintaticamente. Requisitos:
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
 $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-powershell -ExecutionPolicy Bypass -File .\scripts\build-android-apk.ps1
+& .\scripts\build-android-apk.ps1
 ```
 
 O script rejeita `app-release-unsigned.apk`, roda
@@ -72,10 +72,9 @@ ser commitado neste projeto CNG.
 
 ## Pendências para o coordenador
 
-- Aplicar `assets/campus-icon.png` e os campos de ícone/adaptive icon no
-  `app.json` quando o asset estiver pronto.
+- Ícone próprio e adaptive icon já aplicados em `app.json` pelo coordenador.
 - Autorizar/executar o login Expo e o build `preview`; sem login não há APK.
-- Adicionar `/android` e `/ios` ao `.gitignore` antes de rodar o prebuild local.
+- Diretórios `/android` e `/ios` e credenciais já excluídos pelo `.gitignore`.
 - Registrar o caminho e o hash do APK real recebido; não reutilizar este texto
   como prova de build.
 
@@ -84,3 +83,7 @@ ser commitado neste projeto CNG.
 - Não foi feito build Android local, cloud ou instalação em aparelho.
 - Não foi possível validar tamanho, assinatura, ícone ou inicialização do APK.
 - O perfil `production` gera AAB para loja; não é necessário para a demo.
+
+Referências oficiais: [gerar APK](https://docs.expo.dev/build-reference/apk/),
+[build local](https://docs.expo.dev/guides/local-app-production/) e
+[limites do EAS local no Windows](https://docs.expo.dev/build-reference/local-builds/).

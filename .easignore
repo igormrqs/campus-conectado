@@ -1,0 +1,17 @@
+.git
+node_modules
+.expo
+dist
+web-build
+.agents
+campus-conectado-orca-kit
+docs
+tests
+*.log
+.env
+.env.*
+credentials.json
+*.jks
+*.keystore
+/android
+/ios

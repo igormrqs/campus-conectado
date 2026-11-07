@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-07T19:22:40.696Z",
+  "browser": "msedge",
+  "platform": "web",
+  "results": [
+    {
+      "name": "Seed inicial, marca e progresso",
+      "result": "passed"
+    },
+    {
+      "name": "Filtros e conclusão atualizam totais",
+      "result": "passed"
+    },
+    {
+      "name": "Validação obrigatória e data impossível",
+      "result": "passed"
+    },
+    {
+      "name": "Cadastro real com prazo amanhã e descrição longa",
+      "result": "passed"
+    },
+    {
+      "name": "Edição e alteração de prazo",
+      "result": "passed"
+    },
+    {
+      "name": "Exclusão cancelada e confirmada",
+      "result": "passed"
+    },
+    {
+      "name": "Persistência após fechar e reabrir processo do navegador",
+      "result": "passed"
+    },
+    {
+      "name": "Abertura direta de edição e identificador inexistente",
+      "result": "passed"
+    },
+    {
+      "name": "Estado vazio persistido sem recriar seed",
+      "result": "passed"
+    },
+    {
+      "name": "JSON corrompido preservado e retry recupera após reparo",
+      "result": "passed"
+    },
+    {
+      "name": "Larguras 360 e 1280 e preferência reduced motion",
+      "result": "passed"
+    }
+  ],
+  "runtimeErrors": [],
+  "limitations": "Não verifica execução Android, APK, teclado nativo, TalkBack, haptics ou desempenho."
+}

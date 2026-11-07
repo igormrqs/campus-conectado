@@ -1,5 +1,21 @@
 # Roteiro de demo de 5 minutos
 
+## Preparar e apresentar
+
+- Inicie `npx expo start` e abra a versão disponível. No ambiente desta entrega,
+  os fluxos foram executados no navegador; instalação Android/APK está pendente.
+- Se estiver reapresentando, use "Restaurar dados da demo" no build de
+  desenvolvimento, confirmando a substituição dos dados. Esse controle não
+  aparece no APK release. Não limpe dados pessoais para montar uma demo.
+- 0:00–1:00: apresente a identidade, o radar e o progresso inicial.
+- 1:00–2:00: alterne Pendentes/Concluídas e conclua uma atividade.
+- 2:00–3:00: cadastre a atividade da apresentação com prazo amanhã.
+- 3:00–4:00: edite descrição/prazo e demonstre cancelar/confirmar exclusão.
+- 4:00–5:00: feche/reabra, confira a persistência e explique os limites.
+
+Para o APK real, faça este roteiro também sem rede e sem Metro. Não apresente
+um bundle JavaScript exportado como se fosse um APK instalável.
+
 ## Dados iniciais simulados
 Criar 10–12 atividades com prazo relativo ao primeiro acesso (hoje, amanhã, +3 dias, +7 dias, -1 dia), distribuídas em disciplinas como Estruturas de Dados, Banco de Dados, Engenharia de Software, Cálculo, Redes de Computadores e Desenvolvimento Mobile. Misturar concluídas, pendentes e uma atrasada.
 

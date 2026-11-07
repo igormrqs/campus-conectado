@@ -8,4 +8,11 @@ web-build/
 !.env.example
 *.log
 .DS_Store
-
+credentials.json
+*.jks
+*.keystore
+android/local.properties
+/android/
+/ios/
+docs/evidence/failure.png
+docs/evidence/browser-failure.json

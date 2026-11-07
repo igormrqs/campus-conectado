@@ -6,6 +6,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/campus-icon.png",
+    "web": { "favicon": "./assets/campus-icon.png" },
     "plugins": [
       "expo-router",
       "expo-sqlite",
@@ -13,7 +15,13 @@
       "@react-native-community/datetimepicker"
     ],
     "android": {
-      "package": "br.edu.campusconectado.demo"
+      "package": "br.edu.campusconectado.demo",
+      "versionCode": 1,
+      "softwareKeyboardLayoutMode": "resize",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#F7F5EF"
+      }
     }
   }
 }
