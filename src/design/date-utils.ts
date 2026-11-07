@@ -19,6 +19,20 @@ const WEEKDAY_NAMES = [
   'Quinta-feira', 'Sexta-feira', 'Sábado',
 ];
 
+/** V2 contract stubs; functional worker supplies strict local-calendar behavior. */
+export function formatDatePtBR(_iso: string, _style?: 'short' | 'long'): string {
+  throw new Error('V2 localized dates pending implementation');
+}
+export function formatDateInput(_iso: string): string {
+  throw new Error('V2 localized dates pending implementation');
+}
+export function parseDateInput(_text: string): string | null {
+  throw new Error('V2 localized dates pending implementation');
+}
+export function getDateBlock(_iso: string): { day: string; month: string; year: string } {
+  throw new Error('V2 localized dates pending implementation');
+}
+
 /**
  * Returns today's civil date as YYYY-MM-DD in local time.
  */

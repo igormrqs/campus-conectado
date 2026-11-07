@@ -1,0 +1,216 @@
+{
+  "phase": "before",
+  "capturedAt": "2026-11-07T20:20:41.012Z",
+  "platform": "web",
+  "nativeScreenshots": false,
+  "errors": [],
+  "screenshots": [
+    {
+      "file": "360-inicio.png",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "state": "inicio",
+      "firstTask": {
+        "x": 81,
+        "y": 527,
+        "width": 246,
+        "height": 104
+      }
+    },
+    {
+      "file": "360-atividades.png",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "state": "atividades",
+      "firstTask": {
+        "x": 81,
+        "y": 311,
+        "width": 246,
+        "height": 104
+      }
+    },
+    {
+      "file": "360-formulario.png",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "state": "formulario",
+      "firstTask": null
+    },
+    {
+      "file": "360-vazio.png",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "state": "vazio",
+      "firstTask": null
+    },
+    {
+      "file": "360-erro.png",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "state": "erro",
+      "firstTask": null
+    },
+    {
+      "file": "360-tudo-concluido.png",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "state": "tudo-concluido",
+      "firstTask": {
+        "x": 81,
+        "y": 527,
+        "width": 246,
+        "height": 102
+      }
+    },
+    {
+      "file": "390-inicio.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "inicio",
+      "firstTask": {
+        "x": 81,
+        "y": 527,
+        "width": 276,
+        "height": 104
+      }
+    },
+    {
+      "file": "390-atividades.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "atividades",
+      "firstTask": {
+        "x": 81,
+        "y": 311,
+        "width": 276,
+        "height": 104
+      }
+    },
+    {
+      "file": "390-formulario.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "formulario",
+      "firstTask": null
+    },
+    {
+      "file": "390-vazio.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "vazio",
+      "firstTask": null
+    },
+    {
+      "file": "390-erro.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "erro",
+      "firstTask": null
+    },
+    {
+      "file": "390-tudo-concluido.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "tudo-concluido",
+      "firstTask": {
+        "x": 81,
+        "y": 527,
+        "width": 276,
+        "height": 102
+      }
+    },
+    {
+      "file": "1280-inicio.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "state": "inicio",
+      "firstTask": {
+        "x": 385,
+        "y": 527,
+        "width": 558,
+        "height": 84
+      }
+    },
+    {
+      "file": "1280-atividades.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "state": "atividades",
+      "firstTask": {
+        "x": 385,
+        "y": 311,
+        "width": 558,
+        "height": 84
+      }
+    },
+    {
+      "file": "1280-formulario.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "state": "formulario",
+      "firstTask": null
+    },
+    {
+      "file": "1280-vazio.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "state": "vazio",
+      "firstTask": null
+    },
+    {
+      "file": "1280-erro.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "state": "erro",
+      "firstTask": null
+    },
+    {
+      "file": "1280-tudo-concluido.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "state": "tudo-concluido",
+      "firstTask": {
+        "x": 385,
+        "y": 527,
+        "width": 558,
+        "height": 82
+      }
+    }
+  ]
+}

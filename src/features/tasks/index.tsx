@@ -16,6 +16,9 @@ import type { TasksContextValue, TaskFieldErrors, TaskInput } from './types';
 import { validateTaskInput as validateTaskInputFields } from './validation';
 
 export type { Task, TaskInput, TaskFieldErrors, TasksContextValue } from './types';
+export { getTaskStats, selectFocusTasks, selectFilteredTasks, getTaskDisciplines } from './selectors';
+export type { TaskFilter, TaskStats } from './selectors';
+export { useTaskToday } from './use-task-today';
 
 let defaultRepository: TaskRepository | null = null;
 
