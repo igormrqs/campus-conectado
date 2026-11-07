@@ -32,27 +32,23 @@ function makeChunk(type, data) {
 }
 
 function createPng(width, height, getPixel) {
-  // Signature
   const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-
-  // IHDR
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);
-  ihdr[8] = 8; // 8 bit per channel
+  ihdr[8] = 8; // 8-bit depth
   ihdr[9] = 6; // RGBA
-  ihdr[10] = 0; // Deflate
-  ihdr[11] = 0; // Filter
-  ihdr[12] = 0; // No interlace
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
   const ihdrChunk = makeChunk('IHDR', ihdr);
 
-  // Raw image data with filter byte (0) per row
   const rowLen = 1 + width * 4;
   const rawData = Buffer.alloc(rowLen * height);
 
   for (let y = 0; y < height; y++) {
     const rowOffset = y * rowLen;
-    rawData[rowOffset] = 0; // None filter
+    rawData[rowOffset] = 0; // Filter none
     for (let x = 0; x < width; x++) {
       const [r, g, b, a] = getPixel(x, y, width, height);
       const pxOffset = rowOffset + 1 + x * 4;
@@ -70,36 +66,24 @@ function createPng(width, height, getPixel) {
   return Buffer.concat([sig, ihdrChunk, idatChunk, iendChunk]);
 }
 
-// Colors:
-// Paper: #F7F5EF -> (247, 245, 239)
-// Ink: #171A21 -> (23, 26, 33)
-// Blue: #314BCE -> (49, 75, 206)
-// Lime: #DBF57A -> (219, 245, 122)
-// Coral: #E6674D -> (230, 103, 77)
+// Colors
+// Paper: #F7F5EF (247, 245, 239)
+// Ink: #171A21 (23, 26, 33)
+// Blue: #314BCE (49, 75, 206)
+// Lime: #DBF57A (219, 245, 122)
 
-// Editorial icon design:
-// - Background: warm paper #F7F5EF with soft border
-// - Center: Stylized notebook emblem in #171A21 with rounded corners
-// - Left spine: electric blue #314BCE vertical spine band
-// - Accent ribbon / bookmark / orbital arc in lime #DBF57A and blue
-// - Clean geometry representing "Caderno em Movimento"
+function renderEmblemPixel(x, y, w, h, isTransparentBg = false, scale = 1.0) {
+  // Normalize coordinates -1 to 1, apply scaling factor
+  const nx = ((x / w) * 2 - 1) / scale;
+  const ny = ((y / h) * 2 - 1) / scale;
 
-function renderIconPixel(x, y, w, h) {
-  // Normalize coordinates -1 to 1
-  const nx = (x / w) * 2 - 1;
-  const ny = (y / h) * 2 - 1;
+  let r = 247, g = 245, b = 239, a = isTransparentBg ? 0 : 255;
 
-  // Background: warm paper
-  let r = 247, g = 245, b = 239, a = 255;
-
-  // Notebook shape: rectangle from -0.62 to +0.62 in X, -0.68 to +0.68 in Y
-  // with rounded corners radius ~ 0.16
-  const rectL = -0.58, rectR = 0.58, rectT = -0.64, rectB = 0.64;
-  const rad = 0.15;
+  // Notebook shape: bounds
+  const rectL = -0.56, rectR = 0.56, rectT = -0.62, rectB = 0.62;
+  const rad = 0.14;
 
   let insideNotebook = false;
-  let distToCorner = 0;
-
   if (nx >= rectL && nx <= rectR && ny >= rectT && ny <= rectB) {
     let dx = 0, dy = 0;
     if (nx < rectL + rad) dx = (rectL + rad) - nx;
@@ -114,51 +98,61 @@ function renderIconPixel(x, y, w, h) {
   }
 
   if (insideNotebook) {
+    a = 255;
     // Base notebook color: deep ink #171A21
     r = 23; g = 26; b = 33;
 
-    // Left spine strip: nx from rectL to rectL + 0.22
+    // Left spine strip
     if (nx <= rectL + 0.22) {
-      // Electric blue #314BCE
-      r = 49; g = 75; b = 206;
+      r = 49; g = 75; b = 206; // Electric blue #314BCE
     }
 
-    // Grid lines / horizontal notebook lines in muted tone
-    // Y between -0.4 and 0.45
-    const lineSpacing = 0.14;
+    // Interior notebook guidelines
+    const lineSpacing = 0.13;
     const lineY = Math.abs((ny + 0.02) % lineSpacing);
-    if (nx > rectL + 0.32 && nx < rectR - 0.12 && ny > -0.42 && ny < 0.46) {
+    if (nx > rectL + 0.32 && nx < rectR - 0.10 && ny > -0.38 && ny < 0.44) {
       if (lineY < 0.015) {
-        // Line paper guide
-        r = 50; g = 55; b = 68;
+        r = 48; g = 54; b = 68;
       }
     }
 
-    // Bookmark / orbital arc:
-    // A diagonal ribbon or arc in lime #DBF57A
-    // Top-right corner bookmark: nx from 0.25 to 0.42, ny from rectT to -0.2
-    if (nx >= 0.22 && nx <= 0.40 && ny >= rectT && ny <= -0.15) {
-      r = 219; g = 245; b = 122; // Lime
+    // Lime Bookmark ribbon at top-right
+    if (nx >= 0.20 && nx <= 0.38 && ny >= rectT && ny <= -0.16) {
+      r = 219; g = 245; b = 122; // Lime #DBF57A
     }
 
-    // Bottom check / geometric dot: circle centered at (0.31, 0.28) radius 0.09
-    const dotDist = Math.hypot(nx - 0.31, ny - 0.28);
-    if (dotDist <= 0.08) {
-      r = 49; g = 75; b = 206; // Blue accent dot
-    } else if (dotDist <= 0.12 && dotDist > 0.095) {
+    // Connected orbital node at bottom-right
+    const dotDist = Math.hypot(nx - 0.29, ny - 0.27);
+    if (dotDist <= 0.075) {
+      r = 49; g = 75; b = 206; // Blue center dot
+    } else if (dotDist <= 0.115 && dotDist > 0.085) {
       r = 219; g = 245; b = 122; // Lime orbital ring
     }
   }
 
-  // Border / subtle outline around notebook
   return [r, g, b, a];
 }
 
-const icon1024 = createPng(1024, 1024, renderIconPixel);
 const assetsDir = path.resolve(__dirname, '../assets');
 if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true });
 
-fs.writeFileSync(path.join(assetsDir, 'campus-icon.png'), icon1024);
-fs.writeFileSync(path.join(assetsDir, 'android-icon-foreground.png'), icon1024);
-fs.writeFileSync(path.join(assetsDir, 'icon.png'), icon1024);
-console.log('Successfully generated assets/campus-icon.png and assets/android-icon-foreground.png (1024x1024)!');
+console.log('Generating app icon assets (1024x1024)...');
+
+// 1. Full square icon with paper background
+const campusIcon = createPng(1024, 1024, (x, y, w, h) => renderEmblemPixel(x, y, w, h, false, 1.0));
+fs.writeFileSync(path.join(assetsDir, 'campus-icon.png'), campusIcon);
+fs.writeFileSync(path.join(assetsDir, 'icon.png'), campusIcon);
+
+// 2. Android adaptive icon foreground (scaled into safe zone with transparent background)
+const androidForeground = createPng(1024, 1024, (x, y, w, h) => renderEmblemPixel(x, y, w, h, true, 0.72));
+fs.writeFileSync(path.join(assetsDir, 'android-icon-foreground.png'), androidForeground);
+
+// 3. Splash icon (scaled into center)
+const splashIcon = createPng(1024, 1024, (x, y, w, h) => renderEmblemPixel(x, y, w, h, false, 0.65));
+fs.writeFileSync(path.join(assetsDir, 'splash-icon.png'), splashIcon);
+
+console.log('Successfully generated:');
+console.log(' - assets/campus-icon.png');
+console.log(' - assets/icon.png');
+console.log(' - assets/android-icon-foreground.png');
+console.log(' - assets/splash-icon.png');

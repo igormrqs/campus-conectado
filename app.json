@@ -7,6 +7,11 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/campus-icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F7F5EF"
+    },
     "web": {
       "favicon": "./assets/campus-icon.png"
     },
@@ -18,7 +23,7 @@
     ],
     "android": {
       "package": "br.edu.campusconectado.demo",
-      "versionCode": 1,
+      "versionCode": 2,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
