@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './ThemedText';
+import { BrandLogo } from './BrandLogo';
 import { colors, spacing, layout, radius } from '@/src/design/tokens';
 
 export interface HeaderProps {
@@ -51,12 +52,7 @@ export function Header({
             <Feather name="arrow-left" size={22} color={colors.ink} />
           </Pressable>
         ) : (
-          <View style={styles.brandRow}>
-            <View style={styles.brandDot} />
-            <ThemedText variant="caption" color={colors.ink} style={styles.brandText}>
-              CAMPUS CONECTADO
-            </ThemedText>
-          </View>
+          <BrandLogo size="sm" showWordmark={true} />
         )}
 
         {rightAction ? (
@@ -122,22 +118,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  brandDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.blue,
-    marginRight: spacing.xs + 2,
-  },
-  brandText: {
-    letterSpacing: 1.4,
-    fontWeight: '700',
-    fontSize: 12,
   },
   rightActionContainer: {
     alignItems: 'flex-end',

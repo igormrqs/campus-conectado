@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ThemedText } from './ThemedText';
 import { Button } from './Button';
+import { BrandLogo } from './BrandLogo';
 import { colors, radius, spacing } from '@/src/design/tokens';
 
 export interface EmptyStateProps {
@@ -11,6 +12,7 @@ export interface EmptyStateProps {
   actionTitle?: string;
   onAction?: () => void;
   iconName?: keyof typeof Feather.glyphMap;
+  useBrandLogo?: boolean;
 }
 
 export function EmptyState({
@@ -19,12 +21,19 @@ export function EmptyState({
   actionTitle,
   onAction,
   iconName = 'clipboard',
+  useBrandLogo = false,
 }: EmptyStateProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.iconCircle}>
-        <Feather name={iconName} size={24} color={colors.ink} />
-      </View>
+      {useBrandLogo ? (
+        <View style={styles.logoWrapper}>
+          <BrandLogo size="lg" showWordmark={false} />
+        </View>
+      ) : (
+        <View style={styles.iconCircle}>
+          <Feather name={iconName} size={24} color={colors.ink} />
+        </View>
+      )}
 
       <ThemedText variant="headline" style={styles.title} align="center">
         {title}
@@ -61,6 +70,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginVertical: spacing.sm,
     borderCurve: 'continuous',
+  },
+  logoWrapper: {
+    marginBottom: spacing.smd,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconCircle: {
     width: 52,
