@@ -23,7 +23,7 @@ export function EmptyState({
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>
-        <Feather name={iconName} size={28} color={colors.ink} />
+        <Feather name={iconName} size={24} color={colors.ink} />
       </View>
 
       <ThemedText variant="headline" style={styles.title} align="center">
@@ -53,31 +53,39 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xl,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.white,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    marginVertical: spacing.md,
+    marginVertical: spacing.sm,
     borderCurve: 'continuous',
   },
   iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: colors.lime,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.smd,
   },
   title: {
+    fontSize: 17,
+    lineHeight: 22,
     marginBottom: spacing.xs,
   },
   description: {
-    maxWidth: 280,
-    marginBottom: spacing.lg,
+    fontSize: 14,
+    lineHeight: 20,
+    maxWidth: 290,
+    marginBottom: spacing.md,
   },
   actionWrapper: {
-    marginTop: spacing.xs,
+    marginTop: 2,
+    width: '100%',
+    maxWidth: 240,
+    alignItems: 'center',
   },
 });

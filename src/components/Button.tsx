@@ -73,8 +73,8 @@ export function Button({
       case 'destructive':
         return {
           container: {
-            backgroundColor: colors.coral,
-            borderColor: colors.coral,
+            backgroundColor: colors.error,
+            borderColor: colors.error,
           },
           textColor: colors.white,
         };
@@ -113,7 +113,7 @@ export function Button({
       case 'lg':
         return {
           container: {
-            minHeight: 56,
+            minHeight: 54,
             paddingVertical: spacing.md,
             paddingHorizontal: spacing.xl,
             borderRadius: radius.md,
