@@ -3,12 +3,13 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './ThemedText';
-import { colors, spacing, layout } from '@/src/design/tokens';
+import { colors, spacing, layout, radius } from '@/src/design/tokens';
 
 export interface HeaderProps {
   title?: string;
   subtitle?: string;
   eyebrow?: string;
+  dateBlock?: { day: string; month: string; year?: string };
   showBack?: boolean;
   onBack?: () => void;
   rightAction?: React.ReactNode;
@@ -18,6 +19,7 @@ export function Header({
   title,
   subtitle,
   eyebrow,
+  dateBlock,
   showBack = false,
   onBack,
   rightAction,
@@ -48,7 +50,7 @@ export function Header({
             <Feather name="arrow-left" size={22} color={colors.ink} />
           </Pressable>
         ) : (
-          <View style={styles.brandMark}>
+          <View style={styles.brandRow}>
             <View style={styles.brandDot} />
             <ThemedText variant="caption" color={colors.ink} style={styles.brandText}>
               CAMPUS CONECTADO
@@ -56,7 +58,20 @@ export function Header({
           </View>
         )}
 
-        {rightAction ? <View style={styles.rightAction}>{rightAction}</View> : null}
+        <View style={styles.rightCluster}>
+          {dateBlock && (
+            <View style={styles.dateStamp} accessibilityLabel={`Data de hoje: ${dateBlock.day} de ${dateBlock.month}`}>
+              <ThemedText variant="caption" color={colors.ink} style={styles.dateStampDay}>
+                {dateBlock.day}
+              </ThemedText>
+              <View style={styles.dateStampDivider} />
+              <ThemedText variant="caption" color={colors.muted} style={styles.dateStampMonth}>
+                {dateBlock.month.toUpperCase()}
+              </ThemedText>
+            </View>
+          )}
+          {rightAction ? <View style={styles.rightAction}>{rightAction}</View> : null}
+        </View>
       </View>
 
       {eyebrow ? (
@@ -84,15 +99,15 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.xs,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.xs,
     width: '100%',
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: layout.touchTarget,
-    marginBottom: spacing.xs,
+    minHeight: layout.touchTarget - 8,
+    marginBottom: 2,
   },
   backButton: {
     width: layout.touchTarget,
@@ -103,7 +118,7 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6,
   },
-  brandMark: {
+  brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -115,19 +130,55 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs + 2,
   },
   brandText: {
-    letterSpacing: 1.5,
+    letterSpacing: 1.4,
     fontWeight: '700',
+    fontSize: 12,
+  },
+  rightCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  dateStamp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.softPaper,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  dateStampDay: {
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  dateStampDivider: {
+    width: 1,
+    height: 10,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.xs,
+  },
+  dateStampMonth: {
+    fontWeight: '600',
+    fontSize: 11,
+    letterSpacing: 0.5,
   },
   eyebrow: {
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: spacing.xs,
+    fontSize: 11,
   },
   title: {
-    marginTop: spacing.xs,
+    marginTop: 2,
+    fontSize: 26,
+    lineHeight: 32,
   },
   subtitle: {
-    marginTop: spacing.xs,
+    marginTop: 2,
+    fontSize: 14,
+    lineHeight: 20,
   },
   rightAction: {
     alignItems: 'flex-end',

@@ -23,6 +23,7 @@ import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-u
 export interface TaskCardProps {
   task: Task;
   index?: number;
+  variant?: 'default' | 'focus' | 'compact';
   onToggle: (id: string) => void | Promise<void>;
   onPress: (task: Task) => void;
   onDelete: (id: string) => void | Promise<void>;
@@ -31,6 +32,7 @@ export interface TaskCardProps {
 export function TaskCard({
   task,
   index = 0,
+  variant = 'default',
   onToggle,
   onPress,
   onDelete,
@@ -85,31 +87,33 @@ export function TaskCard({
     if (reducedMotion) {
       return FadeIn.duration(150);
     }
-    const delay = Math.min(index * motion.stagger, 350);
+    const delay = Math.min(index * motion.stagger, 320);
     return FadeInDown.duration(motion.base).delay(delay);
   }, [index, reducedMotion]);
 
   return (
     <Animated.View entering={enteringAnimation} style={styles.wrapper}>
-      {/* Sibling controls pattern: outer container is a View, preventing DOM button nesting */}
+      {/* Container maintains full opacity even when completed for WCAG AA contrast compliance */}
       <View
         style={[
           styles.card,
+          variant === 'focus' && styles.cardFocus,
           overdue && styles.cardOverdue,
           task.completed && styles.cardCompleted,
         ]}
       >
         <View style={styles.cardHeader}>
+          {/* Micro-label: Discipline badge */}
           <View style={[styles.disciplineBadge, overdue && styles.disciplineBadgeOverdue]}>
             <Feather
               name="book-open"
-              size={12}
-              color={overdue ? colors.coral : colors.blue}
+              size={11}
+              color={overdue ? colors.error : colors.blue}
               style={styles.disciplineIcon}
             />
             <ThemedText
               variant="caption"
-              color={overdue ? colors.coral : colors.blue}
+              color={overdue ? colors.error : colors.blue}
               numberOfLines={1}
               style={styles.disciplineText}
             >
@@ -117,6 +121,7 @@ export function TaskCard({
             </ThemedText>
           </View>
 
+          {/* Delete button: subtle secondary action, not visually dominant */}
           <Pressable
             onPress={handleDeletePrompt}
             hitSlop={12}
@@ -124,15 +129,15 @@ export function TaskCard({
             accessibilityLabel={`Excluir ${task.title}`}
             style={({ pressed }) => [styles.deleteBtn, pressed && styles.deleteBtnPressed]}
           >
-            <Feather name="trash-2" size={16} color={colors.muted} />
+            <Feather name="trash-2" size={14} color={colors.muted} />
           </Pressable>
         </View>
 
         <View style={styles.bodyRow}>
-          {/* Checkbox is an independent sibling pressable */}
+          {/* Checkbox: independent sibling pressable with >=48dp touch target */}
           <Pressable
             onPress={handleToggle}
-            hitSlop={12}
+            hitSlop={8}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: task.completed }}
             accessibilityLabel={task.completed ? 'Marcar como pendente' : 'Marcar como concluída'}
@@ -146,11 +151,11 @@ export function TaskCard({
                 animatedCheckStyle,
               ]}
             >
-              {task.completed && <Feather name="check" size={15} color={colors.white} />}
+              {task.completed && <Feather name="check" size={14} color={colors.white} />}
             </Animated.View>
           </Pressable>
 
-          {/* Text content is an independent sibling pressable for editing */}
+          {/* Text content: independent sibling pressable for editing with clear affordance */}
           <Pressable
             onPress={() => onPress(task)}
             accessibilityRole="button"
@@ -161,20 +166,23 @@ export function TaskCard({
               pressed && styles.contentPressed,
             ]}
           >
-            <ThemedText
-              variant="headline"
-              color={task.completed ? colors.muted : colors.ink}
-              style={[styles.title, task.completed && styles.titleCompleted]}
-              numberOfLines={2}
-            >
-              {task.title}
-            </ThemedText>
+            <View style={styles.titleRow}>
+              <ThemedText
+                variant="headline"
+                color={task.completed ? colors.muted : colors.ink}
+                style={[styles.title, task.completed && styles.titleCompleted]}
+                numberOfLines={2}
+              >
+                {task.title}
+              </ThemedText>
+              <Feather name="chevron-right" size={16} color={colors.muted} style={styles.editChevron} />
+            </View>
 
             {task.description ? (
               <ThemedText
                 variant="body"
                 color={colors.muted}
-                numberOfLines={2}
+                numberOfLines={1}
                 style={styles.description}
               >
                 {task.description}
@@ -185,14 +193,13 @@ export function TaskCard({
               <View style={[styles.dateChip, overdue && styles.dateChipOverdue]}>
                 <Feather
                   name={overdue ? 'alert-circle' : 'calendar'}
-                  size={13}
+                  size={12}
                   color={overdue ? colors.coral : colors.muted}
                   style={styles.dateIcon}
                 />
-                {/* High contrast: ink color with coral icon and label for overdue */}
                 <ThemedText
                   variant="caption"
-                  color={colors.ink}
+                  color={overdue ? colors.error : colors.ink}
                   style={[styles.dateText, overdue && styles.dateTextOverdue]}
                 >
                   {friendlyDate}
@@ -208,56 +215,64 @@ export function TaskCard({
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginVertical: spacing.xs + 2,
+    marginVertical: spacing.xs,
     width: '100%',
   },
   card: {
     backgroundColor: colors.white,
     borderRadius: radius.md,
-    padding: spacing.md,
+    padding: spacing.smd,
     borderWidth: 1,
     borderColor: colors.border,
     borderCurve: 'continuous',
   },
+  cardFocus: {
+    borderColor: 'rgba(49, 75, 206, 0.25)',
+    borderLeftWidth: 3,
+    borderLeftColor: colors.blue,
+  },
   cardOverdue: {
-    borderColor: 'rgba(230, 103, 77, 0.45)',
+    borderColor: 'rgba(230, 103, 77, 0.35)',
+    borderLeftWidth: 3,
+    borderLeftColor: colors.coral,
     backgroundColor: '#FFFDFD',
   },
   cardCompleted: {
     backgroundColor: colors.softPaper,
     borderColor: colors.border,
-    opacity: 0.85,
+    // Note: No global opacity reduction to maintain WCAG AA text contrast
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   disciplineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.blueTint,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs - 1,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
     borderRadius: radius.sm,
-    maxWidth: '75%',
+    maxWidth: '80%',
   },
   disciplineBadgeOverdue: {
-    backgroundColor: 'rgba(230, 103, 77, 0.12)',
+    backgroundColor: colors.errorTint,
   },
   disciplineIcon: {
     marginRight: spacing.xs,
   },
   disciplineText: {
     fontWeight: '600',
+    fontSize: 11,
   },
   deleteBtn: {
     padding: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 36,
-    minHeight: 36,
+    minWidth: 32,
+    minHeight: 32,
   },
   deleteBtnPressed: {
     opacity: 0.5,
@@ -275,8 +290,8 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 22,
+    height: 22,
     borderRadius: 6,
     borderWidth: 2,
     borderColor: colors.ink,
@@ -299,34 +314,45 @@ const styles = StyleSheet.create({
   contentPressed: {
     opacity: 0.75,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: spacing.xs,
   },
   titleCompleted: {
     textDecorationLine: 'line-through',
   },
+  editChevron: {
+    opacity: 0.5,
+  },
   description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: spacing.xs,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sm,
+    marginTop: spacing.xs + 2,
   },
   dateChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.softPaper,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: radius.sm,
   },
   dateChipOverdue: {
-    backgroundColor: 'rgba(230, 103, 77, 0.12)',
-    borderColor: 'rgba(230, 103, 77, 0.25)',
+    backgroundColor: colors.errorTint,
+    borderColor: 'rgba(230, 103, 77, 0.3)',
     borderWidth: 1,
   },
   dateIcon: {

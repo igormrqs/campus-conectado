@@ -8,9 +8,15 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { useTasks, Task } from '@/src/features/tasks';
+import {
+  useTasks,
+  Task,
+  getTaskStats,
+  selectFocusTasks,
+  useTaskToday,
+} from '@/src/features/tasks';
 import { colors, spacing, radius, layout } from '@/src/design/tokens';
-import { formatEditorialDate, isOverdue } from '@/src/design/date-utils';
+import { formatEditorialDate, getDateBlock } from '@/src/design/date-utils';
 import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
 import { Button } from '@/src/components/Button';
@@ -24,25 +30,17 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { tasks, isHydrated, error, retryHydration, toggleTask, deleteTask, resetDemo } = useTasks();
 
+  const today = useTaskToday();
+  const dateBlock = useMemo(() => getDateBlock(today), [today]);
   const editorialDate = useMemo(() => formatEditorialDate(), []);
 
-  // Compute stats
-  const totalCount = tasks.length;
-  const completedCount = tasks.filter((t) => t.completed).length;
-  const overdueCount = tasks.filter((t) => isOverdue(t.dueAt, t.completed)).length;
+  // Compute stats strictly via shared selector
+  const stats = useMemo(() => getTaskStats(tasks, today), [tasks, today]);
 
-  // Radar tasks: exactly 2 compact cards prioritising overdue and pending
-  const radarTasks = useMemo(() => {
-    const pending = tasks.filter((t) => !t.completed);
-    // Sort: overdue first, then by dueAt
-    pending.sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+  // Focus tasks strictly via shared selector: pending only, prioritized by overdue > today > future
+  const focusTasks = useMemo(() => selectFocusTasks(tasks, today, 3), [tasks, today]);
 
-    if (pending.length >= 2) {
-      return pending.slice(0, 2);
-    }
-    const completed = tasks.filter((t) => t.completed);
-    return [...pending, ...completed].slice(0, 2);
-  }, [tasks]);
+  const isAllCompleted = stats.total > 0 && stats.pending === 0;
 
   const handleTaskPress = (task: Task) => {
     router.push({
@@ -105,16 +103,17 @@ export default function HomeScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: Math.max(insets.top, 16),
-            paddingBottom: Math.max(insets.bottom, 24) + spacing.xl,
+            paddingTop: Math.max(insets.top, 12),
+            paddingBottom: Math.max(insets.bottom, 20) + spacing.xl,
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentConstraint}>
-          {/* Header with explicit brand Campus Conectado and date stamp */}
+          {/* Header with brand and editorial date stamp */}
           <Header
             eyebrow={editorialDate}
+            dateBlock={dateBlock}
             rightAction={
               error ? null : (
                 <Button
@@ -128,7 +127,7 @@ export default function HomeScreen() {
             }
           />
 
-          {/* Hero section */}
+          {/* Hero headline with tight vertical rhythm: max 2 lines */}
           <View style={styles.heroSection}>
             <ThemedText variant="hero" style={styles.heroTitle}>
               Seu semestre{'\n'}tem ritmo.
@@ -141,7 +140,7 @@ export default function HomeScreen() {
                 <Feather name="alert-triangle" size={20} color={colors.coral} />
               </View>
               <View style={styles.errorContent}>
-                <ThemedText variant="headline" color={colors.coral}>
+                <ThemedText variant="headline" color={colors.error}>
                   Erro de armazenamento
                 </ThemedText>
                 <ThemedText variant="caption" color={colors.muted}>
@@ -157,17 +156,18 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
+              {/* Compact horizontal progress strip */}
               <ProgressCard
-                total={totalCount}
-                completed={completedCount}
-                overdueCount={overdueCount}
+                total={stats.total}
+                completed={stats.completed}
+                overdueCount={stats.overdue}
               />
 
-              {/* Section: Hoje no radar with Ver todas */}
+              {/* Section: Em foco */}
               <View style={styles.sectionHeaderRow}>
                 <View>
                   <ThemedText variant="section" style={styles.sectionTitle}>
-                    Hoje no radar
+                    Em foco
                   </ThemedText>
                   <ThemedText variant="caption" color={colors.muted}>
                     Prioridades imediatas do semestre
@@ -182,8 +182,29 @@ export default function HomeScreen() {
                 />
               </View>
 
-              {/* Exactly 2 compact cards */}
-              {radarTasks.length === 0 ? (
+              {/* Focus list: Strictly pending tasks or 100% completed celebration */}
+              {isAllCompleted ? (
+                <View style={styles.allCompletedCard}>
+                  <View style={styles.completedIconCircle}>
+                    <Feather name="check" size={24} color={colors.ink} />
+                  </View>
+                  <ThemedText variant="headline" style={styles.allCompletedTitle}>
+                    Tudo em dia!
+                  </ThemedText>
+                  <ThemedText variant="body" color={colors.muted} align="center" style={styles.allCompletedBody}>
+                    Todas as atividades do semestre foram entregues. Acesse o histórico completo para rever suas conquistas.
+                  </ThemedText>
+                  <View style={styles.allCompletedAction}>
+                    <Button
+                      title="Ver histórico de atividades"
+                      variant="secondary"
+                      size="md"
+                      onPress={() => router.push('/activities')}
+                      rightIcon={<Feather name="arrow-right" size={16} color={colors.white} />}
+                    />
+                  </View>
+                </View>
+              ) : stats.total === 0 ? (
                 <EmptyState
                   title="Tudo tranquilo no radar"
                   description="Você não possui atividades pendentes urgentes para hoje."
@@ -191,12 +212,21 @@ export default function HomeScreen() {
                   onAction={() => router.push('/task-form')}
                   iconName="check-circle"
                 />
+              ) : focusTasks.length === 0 ? (
+                <EmptyState
+                  title="Nenhuma pendência urgente"
+                  description="Suas próximas atividades estão com prazos mais distantes."
+                  actionTitle="Ver todas as atividades"
+                  onAction={() => router.push('/activities')}
+                  iconName="calendar"
+                />
               ) : (
-                radarTasks.map((task, idx) => (
+                focusTasks.map((task, idx) => (
                   <TaskCard
                     key={task.id}
                     task={task}
                     index={idx}
+                    variant="focus"
                     onToggle={handleToggleTask}
                     onPress={handleTaskPress}
                     onDelete={handleDeleteTask}
@@ -204,7 +234,7 @@ export default function HomeScreen() {
                 ))
               )}
 
-              {/* Bottom actions */}
+              {/* Bottom action near the thumb */}
               <View style={styles.bottomActionsRow}>
                 <Button
                   title="Ver todas as atividades"
@@ -259,32 +289,36 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     marginTop: spacing.xs,
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.xs,
+    marginBottom: 2,
+    paddingHorizontal: 2,
   },
   heroTitle: {
+    fontSize: 32,
+    lineHeight: 36,
     letterSpacing: -0.5,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.xs,
+    marginTop: spacing.smd,
+    marginBottom: spacing.xs,
+    paddingHorizontal: 2,
   },
   sectionTitle: {
+    fontSize: 20,
+    lineHeight: 24,
     letterSpacing: -0.3,
   },
   bottomActionsRow: {
     marginTop: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5F3',
-    borderColor: colors.coral,
+    backgroundColor: colors.errorTint,
+    borderColor: 'rgba(230, 103, 77, 0.4)',
     borderWidth: 1,
     borderRadius: radius.md,
     padding: spacing.md,
@@ -297,9 +331,43 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: spacing.sm,
   },
+  allCompletedCard: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    alignItems: 'center',
+    marginVertical: spacing.sm,
+    borderCurve: 'continuous',
+  },
+  completedIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.lime,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  allCompletedTitle: {
+    fontSize: 18,
+    lineHeight: 22,
+    marginBottom: spacing.xs,
+  },
+  allCompletedBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    maxWidth: 300,
+    marginBottom: spacing.md,
+  },
+  allCompletedAction: {
+    width: '100%',
+    maxWidth: 280,
+  },
   devSection: {
     alignItems: 'center',
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     paddingBottom: spacing.sm,
   },
 });
