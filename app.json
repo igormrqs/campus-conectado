@@ -7,7 +7,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/campus-icon.png",
-    "web": { "favicon": "./assets/campus-icon.png" },
+    "web": {
+      "favicon": "./assets/campus-icon.png"
+    },
     "plugins": [
       "expo-router",
       "expo-sqlite",
@@ -22,6 +24,17 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#F7F5EF"
       }
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "496c6acc-6a5f-495b-8582-2915ddbd5840"
+      }
+    },
+    "owner": "igormrqs"
   }
 }

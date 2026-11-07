@@ -16,3 +16,5 @@ android/local.properties
 /ios/
 docs/evidence/failure.png
 docs/evidence/browser-failure.json
+/artifacts/
+*.apk

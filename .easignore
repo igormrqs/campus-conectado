@@ -15,3 +15,5 @@ credentials.json
 *.keystore
 /android
 /ios
+/artifacts
+*.apk
