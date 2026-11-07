@@ -39,12 +39,12 @@ export function ProgressCard({ total, completed, overdueCount = 0 }: ProgressCar
   });
 
   const getStatusCaption = () => {
-    if (total === 0) return 'Nenhuma atividade cadastrada ainda.';
-    if (percentage === 100) return 'Tudo em dia! Semestre impecável.';
+    if (total === 0) return 'Nenhuma atividade cadastrada';
+    if (percentage === 100) return 'Tudo em dia • Semestre impecável';
     if (overdueCount > 0) {
       return `${overdueCount} atividade${overdueCount > 1 ? 's' : ''} atrasada${overdueCount > 1 ? 's' : ''}`;
     }
-    return `${completed} de ${total} concluídas`;
+    return 'Ritmo constante no semestre';
   };
 
   return (
@@ -53,31 +53,42 @@ export function ProgressCard({ total, completed, overdueCount = 0 }: ProgressCar
       accessibilityRole="summary"
       accessibilityLabel={`Progresso: ${completed} de ${total} atividades, ${percentage}%`}
     >
+      {/* Row 1: Brand label on left, percentage badge on right */}
       <View style={styles.topRow}>
         <View style={styles.labelGroup}>
           <View style={styles.dot} />
-          <ThemedText variant="caption" color="rgba(255, 255, 255, 0.75)" style={styles.eyebrow}>
+          <ThemedText variant="caption" color="rgba(255, 255, 255, 0.72)" style={styles.eyebrow}>
             RITMO DO SEMESTRE
           </ThemedText>
         </View>
 
-        <View style={styles.statsRight}>
-          <ThemedText variant="caption" color="rgba(255, 255, 255, 0.85)" style={styles.countText}>
-            {completed} de {total} atividades
-          </ThemedText>
-          <ThemedText variant="headline" color={colors.lime} style={styles.percentageText}>
-            {percentage}%
-          </ThemedText>
-        </View>
+        <ThemedText variant="headline" color={colors.lime} style={styles.percentageText}>
+          {percentage}%
+        </ThemedText>
       </View>
 
+      {/* Row 2: Smooth animated progress track */}
       <View style={styles.track}>
         <Animated.View style={[styles.fill, animatedFillStyle]} />
       </View>
 
+      {/* Row 3: Status caption on left, count summary on right */}
       <View style={styles.bottomRow}>
-        <ThemedText variant="caption" color="rgba(255, 255, 255, 0.9)" numberOfLines={1} style={styles.statusMessage}>
+        <ThemedText
+          variant="caption"
+          color="rgba(255, 255, 255, 0.9)"
+          numberOfLines={1}
+          style={styles.statusMessage}
+        >
           {getStatusCaption()}
+        </ThemedText>
+
+        <ThemedText
+          variant="caption"
+          color="rgba(255, 255, 255, 0.75)"
+          style={styles.countText}
+        >
+          {completed} de {total} atividades
         </ThemedText>
       </View>
     </View>
@@ -89,11 +100,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
     borderRadius: radius.md,
     paddingVertical: spacing.smd,
-    paddingHorizontal: spacing.md,
-    marginVertical: spacing.sm,
+    paddingHorizontal: spacing.md, // 16px internal margin
+    marginVertical: spacing.xs + 2,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
     borderCurve: 'continuous',
+    width: '100%',
   },
   topRow: {
     flexDirection: 'row',
@@ -116,19 +128,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     fontWeight: '600',
-  },
-  statsRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  countText: {
-    fontWeight: '500',
+    fontSize: 11,
   },
   percentageText: {
     fontWeight: '700',
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 17,
+    lineHeight: 22,
   },
   track: {
     height: 6,
@@ -136,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     overflow: 'hidden',
     width: '100%',
-    marginBottom: spacing.xs,
+    marginVertical: spacing.xs,
   },
   fill: {
     height: '100%',
@@ -147,8 +152,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   statusMessage: {
     fontSize: 12,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  countText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

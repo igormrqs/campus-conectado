@@ -57,14 +57,6 @@ export default function HomeScreen() {
     }
   };
 
-  const handleDeleteTask = async (id: string) => {
-    try {
-      await deleteTask(id);
-    } catch (err: any) {
-      showAlert('Erro', err?.message || 'Falha ao excluir a atividade.');
-    }
-  };
-
   const handleResetDemoPrompt = () => {
     confirmAction(
       'Reiniciar demonstração',
@@ -221,17 +213,18 @@ export default function HomeScreen() {
                   iconName="calendar"
                 />
               ) : (
-                focusTasks.map((task, idx) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    index={idx}
-                    variant="focus"
-                    onToggle={handleToggleTask}
-                    onPress={handleTaskPress}
-                    onDelete={handleDeleteTask}
-                  />
-                ))
+                <View style={styles.agendaSheet}>
+                  {focusTasks.map((task, idx) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={idx}
+                      variant="focus"
+                      onToggle={handleToggleTask}
+                      onPress={handleTaskPress}
+                    />
+                  ))}
+                </View>
               )}
 
               {/* Bottom action near the thumb */}
@@ -309,6 +302,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
     letterSpacing: -0.3,
+  },
+  agendaSheet: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    marginVertical: spacing.xs,
+    borderCurve: 'continuous',
   },
   bottomActionsRow: {
     marginTop: spacing.md,

@@ -38,6 +38,7 @@ export function Header({
 
   return (
     <View style={styles.container}>
+      {/* Top brand or navigation row with safe 16px horizontal margins */}
       <View style={styles.topRow}>
         {showBack ? (
           <Pressable
@@ -58,26 +59,30 @@ export function Header({
           </View>
         )}
 
-        <View style={styles.rightCluster}>
+        {rightAction ? (
+          <View style={styles.rightActionContainer}>{rightAction}</View>
+        ) : null}
+      </View>
+
+      {/* Editorial date row with badge if dateBlock is provided */}
+      {dateBlock || eyebrow ? (
+        <View style={styles.metaRow}>
           {dateBlock && (
-            <View style={styles.dateStamp} accessibilityLabel={`Data de hoje: ${dateBlock.day} de ${dateBlock.month}`}>
-              <ThemedText variant="caption" color={colors.ink} style={styles.dateStampDay}>
+            <View style={styles.dateBadge} accessibilityLabel={`Hoje, ${dateBlock.day} de ${dateBlock.month}`}>
+              <ThemedText variant="caption" color={colors.ink} style={styles.dateBadgeDay}>
                 {dateBlock.day}
               </ThemedText>
-              <View style={styles.dateStampDivider} />
-              <ThemedText variant="caption" color={colors.muted} style={styles.dateStampMonth}>
+              <ThemedText variant="caption" color={colors.muted} style={styles.dateBadgeMonth}>
                 {dateBlock.month.toUpperCase()}
               </ThemedText>
             </View>
           )}
-          {rightAction ? <View style={styles.rightAction}>{rightAction}</View> : null}
+          {eyebrow && (
+            <ThemedText variant="caption" color={colors.muted} style={styles.eyebrow}>
+              {eyebrow.toUpperCase()}
+            </ThemedText>
+          )}
         </View>
-      </View>
-
-      {eyebrow ? (
-        <ThemedText variant="caption" color={colors.muted} style={styles.eyebrow}>
-          {eyebrow.toUpperCase()}
-        </ThemedText>
       ) : null}
 
       {title ? (
@@ -97,7 +102,7 @@ export function Header({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.md, // Strict 16px margin from viewport edges
     paddingTop: spacing.xs,
     paddingBottom: spacing.xs,
     width: '100%',
@@ -106,8 +111,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: layout.touchTarget - 8,
-    marginBottom: 2,
+    minHeight: layout.touchTarget - 4,
+    marginBottom: spacing.xs,
   },
   backButton: {
     width: layout.touchTarget,
@@ -134,12 +139,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
-  rightCluster: {
+  rightActionContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    marginTop: 2,
+    marginBottom: spacing.xs,
   },
-  dateStamp: {
+  dateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.softPaper,
@@ -147,27 +158,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 2,
+    gap: 4,
   },
-  dateStampDay: {
+  dateBadgeDay: {
     fontWeight: '700',
-    fontSize: 12,
-  },
-  dateStampDivider: {
-    width: 1,
-    height: 10,
-    backgroundColor: colors.border,
-    marginHorizontal: spacing.xs,
-  },
-  dateStampMonth: {
-    fontWeight: '600',
     fontSize: 11,
+  },
+  dateBadgeMonth: {
+    fontWeight: '600',
+    fontSize: 10,
     letterSpacing: 0.5,
   },
   eyebrow: {
     letterSpacing: 1.1,
     fontWeight: '600',
-    marginTop: spacing.xs,
     fontSize: 11,
   },
   title: {
@@ -179,9 +184,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 14,
     lineHeight: 20,
-  },
-  rightAction: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
   },
 });

@@ -23,14 +23,13 @@ import {
 import { colors, spacing, radius, layout, fonts } from '@/src/design/tokens';
 import {
   addDaysToDateString,
-  formatFriendlyDate,
   formatDatePtBR,
   formatDateInput,
   parseDateInput,
   parseCivilDate,
   isValidDateString,
 } from '@/src/design/date-utils';
-import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-utils';
+import { confirmAction, triggerHaptic } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
 import { Button } from '@/src/components/Button';
 import { Toast } from '@/src/components/Toast';
@@ -72,7 +71,7 @@ export default function TaskFormScreen() {
   const [description, setDescription] = useState(existingTask ? existingTask.description : '');
   const [dueAt, setDueAt] = useState(initialDueAt);
 
-  // Web input text formatted as DD/MM/AAAA
+  // Web input text formatted strictly as DD/MM/AAAA
   const [dateInputText, setDateInputText] = useState(formatDateInput(initialDueAt));
 
   const [errors, setErrors] = useState<TaskFieldErrors>({});
@@ -161,23 +160,14 @@ export default function TaskFormScreen() {
   const handleWebDateChange = (raw: string) => {
     setDateInputText(raw);
 
-    // Support DD/MM/AAAA via parseDateInput
+    // Strictly parse DD/MM/AAAA. Invalid format sets invalid sentinel so validateTaskInput catches it.
     const parsedIso = parseDateInput(raw);
     if (parsedIso) {
       setDueAt(parsedIso);
       if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
-      return;
+    } else {
+      setDueAt(raw.trim() || 'invalida');
     }
-
-    // Also support YYYY-MM-DD input from automated tests / ISO
-    if (isValidDateString(raw.trim())) {
-      setDueAt(raw.trim());
-      if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
-      return;
-    }
-
-    // If input is non-empty but invalid format, keep raw in dueAt for validator
-    setDueAt(raw.trim());
   };
 
   const validate = (): boolean => {
@@ -222,8 +212,9 @@ export default function TaskFormScreen() {
 
       await triggerHaptic('success');
 
+      // Preserve reliable destination /activities (demo contract expectation)
       setTimeout(() => {
-        router.back();
+        router.replace('/activities');
       }, 400);
     } catch (err: any) {
       setGeneralError(err?.message || 'Falha ao salvar atividade no armazenamento local.');
@@ -241,7 +232,7 @@ export default function TaskFormScreen() {
           setIsSubmitting(true);
           await triggerHaptic('warning');
           await deleteTask(taskId);
-          router.back();
+          router.replace('/activities');
         } catch (err: any) {
           setGeneralError(err?.message || 'Não foi possível excluir a atividade.');
           setIsSubmitting(false);
@@ -267,6 +258,14 @@ export default function TaskFormScreen() {
     }
   };
 
+  const handleCancel = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/activities');
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -277,7 +276,7 @@ export default function TaskFormScreen() {
           styles.scrollContent,
           {
             paddingTop: insets.top,
-            paddingBottom: insets.bottom + 90, // Leave room for persistent fixed footer
+            paddingBottom: insets.bottom + 96, // Safe clearance for persistent fixed footer
           },
         ]}
         keyboardShouldPersistTaps="handled"
@@ -372,7 +371,7 @@ export default function TaskFormScreen() {
               </ThemedText>
             )}
 
-            {/* Compact suggestions strip */}
+            {/* Suggestions horizontal scroll with >=44dp touch targets */}
             <ThemedText variant="caption" color={colors.muted} style={styles.suggestionsTitle}>
               Sugestões do semestre:
             </ThemedText>
@@ -391,6 +390,9 @@ export default function TaskFormScreen() {
                       if (errors.discipline) setErrors((prev) => ({ ...prev, discipline: undefined }));
                     }}
                     hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Selecionar disciplina ${d}`}
+                    accessibilityState={{ selected: isSelected }}
                     style={[styles.suggestionChip, isSelected && styles.suggestionChipSelected]}
                   >
                     <ThemedText
@@ -426,16 +428,6 @@ export default function TaskFormScreen() {
                     style={[styles.input, styles.inputWithPadding, errors.dueAt && styles.inputError]}
                   />
                 </View>
-
-                {/* Invisible input alias for test automation suites searching Prazo YYYY-MM-DD */}
-                <TextInput
-                  value={dueAt}
-                  onChangeText={handleWebDateChange}
-                  accessibilityLabel="Prazo YYYY-MM-DD"
-                  style={styles.hiddenTestAlias}
-                  aria-hidden={true}
-                  tabIndex={-1}
-                />
               </View>
             ) : (
               <Pressable
@@ -455,32 +447,41 @@ export default function TaskFormScreen() {
               </Pressable>
             )}
 
-            {/* Quick date chips */}
-            <View style={styles.quickChipsContainer}>
-              {[
-                { label: 'Hoje', val: today },
-                { label: 'Amanhã', val: tomorrow },
-                { label: 'Em 3 dias', val: in3Days },
-                { label: 'Em 1 semana', val: in7Days },
-              ].map((item) => {
-                const isSelected = dueAt === item.val;
-                return (
-                  <Pressable
-                    key={item.label}
-                    onPress={() => handleDateQuickSelect(item.val)}
-                    hitSlop={6}
-                    style={[styles.quickChip, isSelected && styles.quickChipSelected]}
-                  >
-                    <ThemedText
-                      variant="caption"
-                      color={isSelected ? colors.white : colors.ink}
-                      style={isSelected ? styles.quickChipTextSelected : undefined}
+            {/* Quick date chips in a single horizontal scroll strip */}
+            <View style={styles.quickChipsWrapper}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.quickChipsRow}
+              >
+                {[
+                  { label: 'Hoje', val: today },
+                  { label: 'Amanhã', val: tomorrow },
+                  { label: 'Em 3 dias', val: in3Days },
+                  { label: 'Em 1 semana', val: in7Days },
+                ].map((item) => {
+                  const isSelected = dueAt === item.val;
+                  return (
+                    <Pressable
+                      key={item.label}
+                      onPress={() => handleDateQuickSelect(item.val)}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Prazo ${item.label}`}
+                      accessibilityState={{ selected: isSelected }}
+                      style={[styles.quickChip, isSelected && styles.quickChipSelected]}
                     >
-                      {item.label}
-                    </ThemedText>
-                  </Pressable>
-                );
-              })}
+                      <ThemedText
+                        variant="caption"
+                        color={isSelected ? colors.white : colors.ink}
+                        style={isSelected ? styles.quickChipTextSelected : undefined}
+                      >
+                        {item.label}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
 
             {Platform.OS !== 'web' && showDatePicker && (
@@ -524,7 +525,7 @@ export default function TaskFormScreen() {
               size="md"
               variant="ghost"
               fullWidth
-              onPress={() => router.back()}
+              onPress={handleCancel}
             />
           </View>
         </View>
@@ -591,8 +592,8 @@ const styles = StyleSheet.create({
   },
   deleteHeaderBtn: {
     padding: spacing.xs,
-    minWidth: 40,
-    minHeight: 40,
+    minWidth: 44,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -675,7 +676,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingHorizontal: spacing.smd,
     paddingVertical: spacing.xs,
-    minHeight: 34,
+    minHeight: 44, // 44dp touch target
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -710,11 +711,13 @@ const styles = StyleSheet.create({
   nativeDateText: {
     fontSize: 15,
   },
-  quickChipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs + 2,
+  quickChipsWrapper: {
     marginTop: spacing.xs + 2,
+  },
+  quickChipsRow: {
+    flexDirection: 'row',
+    gap: spacing.xs + 2,
+    paddingVertical: 2,
   },
   quickChip: {
     backgroundColor: colors.softPaper,
@@ -723,7 +726,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    minHeight: 32,
+    minHeight: 44, // 44dp touch target
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -733,14 +736,6 @@ const styles = StyleSheet.create({
   },
   quickChipTextSelected: {
     fontWeight: '600',
-  },
-  hiddenTestAlias: {
-    position: 'absolute',
-    width: 1,
-    height: 1,
-    opacity: 0.01,
-    overflow: 'hidden',
-    zIndex: -1,
   },
   cancelWrapper: {
     marginTop: spacing.xs,

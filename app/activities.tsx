@@ -28,7 +28,7 @@ import { Header } from '@/src/components/Header';
 export default function ActivitiesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { tasks, isHydrated, error, retryHydration, toggleTask, deleteTask } = useTasks();
+  const { tasks, isHydrated, error, retryHydration, toggleTask } = useTasks();
 
   const today = useTaskToday();
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('all');
@@ -66,14 +66,6 @@ export default function ActivitiesScreen() {
       await toggleTask(id);
     } catch (err: any) {
       showAlert('Erro', err?.message || 'Falha ao atualizar status da atividade.');
-    }
-  };
-
-  const handleDeleteTask = async (id: string) => {
-    try {
-      await deleteTask(id);
-    } catch (err: any) {
-      showAlert('Erro', err?.message || 'Falha ao excluir atividade.');
     }
   };
 
@@ -186,7 +178,7 @@ export default function ActivitiesScreen() {
                 </View>
               )}
 
-              {/* Task list with dense lines and fine dividers */}
+              {/* Task list inside an editorial sheet */}
               <View style={styles.listSection}>
                 {filteredTasks.length === 0 ? (
                   <EmptyState
@@ -209,16 +201,17 @@ export default function ActivitiesScreen() {
                     iconName={activeFilter === 'completed' ? 'check-circle' : 'file-text'}
                   />
                 ) : (
-                  filteredTasks.map((task, idx) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      index={idx}
-                      onToggle={handleToggleTask}
-                      onPress={handleTaskPress}
-                      onDelete={handleDeleteTask}
-                    />
-                  ))
+                  <View style={styles.agendaSheet}>
+                    {filteredTasks.map((task, idx) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        index={idx}
+                        onToggle={handleToggleTask}
+                        onPress={handleTaskPress}
+                      />
+                    ))}
+                  </View>
                 )}
               </View>
             </>
@@ -275,10 +268,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   disciplinePill: {
-    minHeight: 38,
+    minHeight: 44, // 44dp touch target
     paddingHorizontal: spacing.sm + 4,
   },
   listSection: {
     paddingTop: spacing.xs,
+  },
+  agendaSheet: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    borderCurve: 'continuous',
   },
 });
