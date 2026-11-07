@@ -36,7 +36,7 @@ function pad2(value: number): string {
 
 /** Formats a Date using its local calendar fields. */
 export function formatCalendarDate(date: Date): string {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  return `${String(date.getFullYear()).padStart(4, '0')}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 }
 
 /** Returns a new Date shifted by whole local calendar days. */

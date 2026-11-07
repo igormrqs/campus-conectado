@@ -5,7 +5,7 @@ const MESSAGES = {
   title: 'Informe o título da atividade.',
   discipline: 'Informe a disciplina.',
   dueAtRequired: 'Escolha uma data de entrega.',
-  dueAtInvalid: 'Use uma data válida (AAAA-MM-DD).',
+  dueAtInvalid: 'Informe uma data de entrega válida.',
   description: 'A descrição precisa ser um texto.',
 } as const;
 

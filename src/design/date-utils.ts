@@ -4,6 +4,8 @@
  * Never converts through toISOString() for display, preventing timezone shifts.
  */
 
+import { formatCalendarDate, isCalendarDate } from '../features/tasks/date';
+
 const MONTH_NAMES_SHORT = [
   'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
   'jul', 'ago', 'set', 'out', 'nov', 'dez',
@@ -19,37 +21,44 @@ const WEEKDAY_NAMES = [
   'Quinta-feira', 'Sexta-feira', 'Sábado',
 ];
 
-/** V2 contract stubs; functional worker supplies strict local-calendar behavior. */
-export function formatDatePtBR(_iso: string, _style?: 'short' | 'long'): string {
-  throw new Error('V2 localized dates pending implementation');
+export function formatDatePtBR(iso: string, style: 'short' | 'long' = 'short'): string {
+  const parsed = parseCivilDate(iso);
+  if (!parsed) return 'Data inválida';
+  const { day, month } = parsed;
+  const year = iso.slice(0, 4);
+  return style === 'long'
+    ? `${day} de ${MONTH_NAMES_FULL[month - 1]} de ${year}`
+    : `${String(day).padStart(2, '0')} ${MONTH_NAMES_SHORT[month - 1]} ${year}`;
 }
-export function formatDateInput(_iso: string): string {
-  throw new Error('V2 localized dates pending implementation');
+export function formatDateInput(iso: string): string {
+  if (!isCalendarDate(iso)) return '';
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 }
-export function parseDateInput(_text: string): string | null {
-  throw new Error('V2 localized dates pending implementation');
+export function parseDateInput(text: string): string | null {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text.trim());
+  if (!match) return null;
+  const iso = `${match[3]}-${match[2]}-${match[1]}`;
+  return isCalendarDate(iso) ? iso : null;
 }
-export function getDateBlock(_iso: string): { day: string; month: string; year: string } {
-  throw new Error('V2 localized dates pending implementation');
+export function getDateBlock(iso: string): { day: string; month: string; year: string } {
+  const parsed = parseCivilDate(iso);
+  if (!parsed) return { day: '—', month: '—', year: '—' };
+  return { day: iso.slice(8, 10), month: MONTH_NAMES_SHORT[parsed.month - 1], year: iso.slice(0, 4) };
 }
 
 /**
  * Returns today's civil date as YYYY-MM-DD in local time.
  */
 export function getTodayDateString(d = new Date()): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return formatCalendarDate(d);
 }
 
 /**
  * Parses YYYY-MM-DD into [year, month, day] numbers.
  */
 export function parseCivilDate(dateStr: string): { year: number; month: number; day: number } | null {
-  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  if (!isCalendarDate(dateStr)) return null;
   const [y, m, d] = dateStr.split('-').map(Number);
-  if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
   return { year: y, month: m, day: d };
 }
 
@@ -58,10 +67,14 @@ export function parseCivilDate(dateStr: string): { year: number; month: number; 
  */
 export function addDaysToDateString(dateStr: string, days: number): string {
   const parsed = parseCivilDate(dateStr);
-  if (!parsed) return dateStr;
-  const date = new Date(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0);
+  if (!parsed || !Number.isInteger(days)) return dateStr;
+  // setFullYear avoids Date's implicit 1900 offset for years 0001–0099.
+  const date = new Date(0);
+  date.setHours(12, 0, 0, 0);
+  date.setFullYear(parsed.year, parsed.month - 1, parsed.day);
   date.setDate(date.getDate() + days);
-  return getTodayDateString(date);
+  const result = getTodayDateString(date);
+  return isCalendarDate(result) ? result : dateStr;
 }
 
 /**
@@ -70,7 +83,7 @@ export function addDaysToDateString(dateStr: string, days: number): string {
  */
 export function isOverdue(dueAt: string, completed: boolean): boolean {
   if (completed) return false;
-  if (!dueAt) return false;
+  if (!isCalendarDate(dueAt)) return false;
   const today = getTodayDateString();
   return dueAt < today;
 }
@@ -81,7 +94,7 @@ export function isOverdue(dueAt: string, completed: boolean): boolean {
  */
 export function formatFriendlyDate(dueAt: string, completed = false): string {
   const parsed = parseCivilDate(dueAt);
-  if (!parsed) return dueAt;
+  if (!parsed) return 'Data inválida';
 
   const today = getTodayDateString();
   const tomorrow = addDaysToDateString(today, 1);
@@ -116,16 +129,5 @@ export function formatEditorialDate(date = new Date()): string {
  * Validates whether string is a valid real calendar date YYYY-MM-DD.
  */
 export function isValidDateString(dateStr: string): boolean {
-  const parsed = parseCivilDate(dateStr);
-  if (!parsed) return false;
-  const { year, month, day } = parsed;
-  if (month < 1 || month > 12) return false;
-  if (day < 1 || day > 31) return false;
-
-  const date = new Date(year, month - 1, day, 12, 0, 0);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
+  return isCalendarDate(dateStr);
 }

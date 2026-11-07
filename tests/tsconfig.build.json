@@ -15,6 +15,6 @@
     "sourceMap": false,
     "types": []
   },
-  "include": ["../src/features/tasks/**/*.ts"],
+  "include": ["../src/features/tasks/**/*.ts", "../src/design/date-utils.ts"],
   "exclude": ["../node_modules", "../src/features/tasks/storage.ts"]
 }
