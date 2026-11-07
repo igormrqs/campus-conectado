@@ -1,0 +1,157 @@
+{
+  "capturedAt": "2026-11-07T20:02:44.038Z",
+  "sourceCommit": "9b911710e50a8f9055b922338cd21e9b1b123c2e",
+  "source": "React Native Web / Expo development server, Microsoft Edge headless",
+  "nativeApkScreenshots": false,
+  "userDeviceAvailable": false,
+  "limitations": [
+    "Sem captura do APK ou teclado Android",
+    "Data na web usa TextInput; APK usa DateTimePicker nativo",
+    "Rodapé de desenvolvimento difere do APK",
+    "Imagens estáticas não avaliam motion/haptics",
+    "Dados e erros simulados apenas em contexto isolado"
+  ],
+  "runtimeErrors": [],
+  "screenshots": [
+    {
+      "file": "01-inicio-412.png",
+      "title": "Início — primeira dobra",
+      "note": "412 × 915. Seed original, quatro concluídas e uma atrasada.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/"
+    },
+    {
+      "file": "02-inicio-rodape-412.png",
+      "title": "Início — rodapé",
+      "note": "O botão Restaurar dados da demo é exclusivo do desenvolvimento e não aparece no APK release.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/"
+    },
+    {
+      "file": "03-atividades-todas-412.png",
+      "title": "Atividades — todas",
+      "note": "Onze atividades; filtros por status e disciplinas.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/activities"
+    },
+    {
+      "file": "04-atividades-pendentes-412.png",
+      "title": "Atividades — pendentes",
+      "note": "Sete pendentes, incluindo atividade atrasada.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/activities"
+    },
+    {
+      "file": "05-atividades-concluidas-412.png",
+      "title": "Atividades — concluídas",
+      "note": "Quatro concluídas; verificar legibilidade dos cartões atenuados.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/activities"
+    },
+    {
+      "file": "06-criar-topo-412.png",
+      "title": "Criar — parte superior",
+      "note": "Na web há campo ISO para data; o APK usa seletor Android e botão Outra data.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/task-form"
+    },
+    {
+      "file": "07-criar-rodape-412.png",
+      "title": "Criar — ações e descrição",
+      "note": "Ação principal no fluxo de rolagem. Teclado Android não representado.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/task-form"
+    },
+    {
+      "file": "08-criar-validacao-412.png",
+      "title": "Criar — validação inline",
+      "note": "Campos obrigatórios vazios; sem criação de atividade.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/task-form"
+    },
+    {
+      "file": "09-editar-412.png",
+      "title": "Editar — tarefa existente",
+      "note": "Mesma experiência de formulário, com conteúdo real da seed e ação de excluir.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/task-form"
+    },
+    {
+      "file": "10-lista-vazia-412.png",
+      "title": "Atividades — estado vazio",
+      "note": "Dados vazios apenas no perfil isolado desta captura.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/activities"
+    },
+    {
+      "file": "11-tudo-concluido-412.png",
+      "title": "Início — tudo concluído",
+      "note": "O radar continua exibindo duas atividades concluídas; estado importante para revisão de copy.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/"
+    },
+    {
+      "file": "12-erro-armazenamento-412.png",
+      "title": "Atividades — erro de armazenamento",
+      "note": "Mensagem preserva dados e oferece tentar novamente.",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "route": "/activities"
+    },
+    {
+      "file": "13-inicio-360.png",
+      "title": "Início — celular menor",
+      "note": "360 × 800 para avaliar espaço ocupado antes das tarefas.",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "route": "/"
+    },
+    {
+      "file": "14-criar-360.png",
+      "title": "Criar — celular menor",
+      "note": "Quantidade de sugestões antes do prazo e da ação principal.",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "route": "/task-form"
+    }
+  ]
+}
