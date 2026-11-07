@@ -49,7 +49,7 @@ export function FilterPills({ activeFilter, onSelect, counts }: FilterPillsProps
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
             accessibilityLabel={`${filter.label}${filter.count !== undefined ? `, ${filter.count} itens` : ''}`}
-            hitSlop={8}
+            hitSlop={6}
             style={({ pressed }) => [
               styles.pill,
               isActive && styles.pillActive,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.softPaper,
     borderRadius: radius.pill,
-    padding: spacing.xs,
+    padding: 3,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -93,12 +93,12 @@ const styles = StyleSheet.create({
   },
   pill: {
     flex: 1,
-    minHeight: layout.touchTarget - 8,
+    minHeight: 44,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs + 2,
   },
   pillActive: {
     backgroundColor: colors.ink,

@@ -8,14 +8,20 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { useTasks, Task } from '@/src/features/tasks';
+import {
+  useTasks,
+  Task,
+  selectFilteredTasks,
+  getTaskDisciplines,
+  useTaskToday,
+  TaskFilter,
+} from '@/src/features/tasks';
 import { colors, spacing, radius, layout } from '@/src/design/tokens';
-import { isOverdue } from '@/src/design/date-utils';
 import { showAlert } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
 import { Button } from '@/src/components/Button';
 import { TaskCard } from '@/src/components/TaskCard';
-import { FilterPills, TaskFilterType } from '@/src/components/FilterPills';
+import { FilterPills } from '@/src/components/FilterPills';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Header } from '@/src/components/Header';
 
@@ -24,51 +30,29 @@ export default function ActivitiesScreen() {
   const insets = useSafeAreaInsets();
   const { tasks, isHydrated, error, retryHydration, toggleTask, deleteTask } = useTasks();
 
-  const [activeFilter, setActiveFilter] = useState<TaskFilterType>('all');
+  const today = useTaskToday();
+  const [activeFilter, setActiveFilter] = useState<TaskFilter>('all');
   const [selectedDiscipline, setSelectedDiscipline] = useState<string | null>(null);
 
-  // Discipline chips list from existing tasks
-  const disciplines = useMemo(() => {
-    const set = new Set<string>();
-    tasks.forEach((t) => {
-      if (t.discipline) set.add(t.discipline.trim());
-    });
-    return Array.from(set).sort();
-  }, [tasks]);
+  // Disciplines extracted via strict pt-BR alphabetical deduplicated helper
+  const disciplines = useMemo(() => getTaskDisciplines(tasks), [tasks]);
+
+  // Discipline subset for consistent counters prior to status filtering
+  const disciplineSubset = useMemo(() => {
+    return selectFilteredTasks(tasks, 'all', selectedDiscipline, today);
+  }, [tasks, selectedDiscipline, today]);
 
   const counts = useMemo(() => {
-    const all = tasks.length;
-    const completed = tasks.filter((t) => t.completed).length;
+    const all = disciplineSubset.length;
+    const completed = disciplineSubset.filter((t) => t.completed).length;
     const pending = all - completed;
     return { all, pending, completed };
-  }, [tasks]);
+  }, [disciplineSubset]);
 
+  // Filtered and ordered tasks via frozen shared selector
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      // Filter by status
-      if (activeFilter === 'pending' && task.completed) return false;
-      if (activeFilter === 'completed' && !task.completed) return false;
-
-      // Filter by discipline if selected
-      if (selectedDiscipline && task.discipline.toLowerCase() !== selectedDiscipline.toLowerCase()) {
-        return false;
-      }
-
-      return true;
-    }).sort((a, b) => {
-      // Prioritize overdue tasks that are pending
-      const aOverdue = isOverdue(a.dueAt, a.completed);
-      const bOverdue = isOverdue(b.dueAt, b.completed);
-      if (aOverdue && !bOverdue) return -1;
-      if (!aOverdue && bOverdue) return 1;
-
-      // Uncompleted tasks before completed
-      if (!a.completed && b.completed) return -1;
-      if (a.completed && !b.completed) return 1;
-
-      return a.dueAt.localeCompare(b.dueAt);
-    });
-  }, [tasks, activeFilter, selectedDiscipline]);
+    return selectFilteredTasks(tasks, activeFilter, selectedDiscipline, today);
+  }, [tasks, activeFilter, selectedDiscipline, today]);
 
   const handleTaskPress = (task: Task) => {
     router.push({
@@ -104,14 +88,22 @@ export default function ActivitiesScreen() {
     );
   }
 
+  const getSubtitle = () => {
+    if (error) return undefined;
+    if (selectedDiscipline) {
+      return `${counts.all} em ${selectedDiscipline}`;
+    }
+    return `${tasks.length} cadastradas no total`;
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.paper }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContainer,
           {
-            paddingTop: insets.top,
-            paddingBottom: Math.max(insets.bottom, 24) + spacing.xl,
+            paddingTop: Math.max(insets.top, 12),
+            paddingBottom: Math.max(insets.bottom, 20) + spacing.xl,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -119,7 +111,7 @@ export default function ActivitiesScreen() {
         <View style={styles.contentConstraint}>
           <Header
             title="Atividades"
-            subtitle={error ? undefined : `${tasks.length} cadastradas no total`}
+            subtitle={getSubtitle()}
             showBack
             rightAction={
               error ? null : (
@@ -140,7 +132,7 @@ export default function ActivitiesScreen() {
                 <Feather name="alert-triangle" size={20} color={colors.coral} />
               </View>
               <View style={styles.errorContent}>
-                <ThemedText variant="headline" color={colors.coral}>
+                <ThemedText variant="headline" color={colors.error}>
                   Erro de carregamento
                 </ThemedText>
                 <ThemedText variant="caption" color={colors.muted}>
@@ -156,6 +148,7 @@ export default function ActivitiesScreen() {
             </View>
           ) : (
             <>
+              {/* Status filter tabs */}
               <View style={styles.filterSection}>
                 <FilterPills
                   activeFilter={activeFilter}
@@ -164,7 +157,8 @@ export default function ActivitiesScreen() {
                 />
               </View>
 
-              {disciplines.length > 1 && (
+              {/* Disciplines horizontal scroll */}
+              {disciplines.length > 0 && (
                 <View style={styles.disciplineScrollWrapper}>
                   <ScrollView
                     horizontal
@@ -192,6 +186,7 @@ export default function ActivitiesScreen() {
                 </View>
               )}
 
+              {/* Task list with dense lines and fine dividers */}
               <View style={styles.listSection}>
                 {filteredTasks.length === 0 ? (
                   <EmptyState
@@ -255,8 +250,8 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5F3',
-    borderColor: colors.coral,
+    backgroundColor: colors.errorTint,
+    borderColor: 'rgba(230, 103, 77, 0.4)',
     borderWidth: 1,
     borderRadius: radius.md,
     padding: spacing.md,
@@ -270,16 +265,17 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   filterSection: {
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs + 2,
   },
   disciplineScrollWrapper: {
-    paddingBottom: spacing.xs,
+    paddingVertical: spacing.xs,
   },
   disciplineRow: {
     gap: spacing.xs + 2,
+    alignItems: 'center',
   },
   disciplinePill: {
-    minHeight: 36,
+    minHeight: 38,
     paddingHorizontal: spacing.sm + 4,
   },
   listSection: {
