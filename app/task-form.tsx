@@ -38,13 +38,14 @@ const SUGGESTED_DISCIPLINES = [
 ];
 
 export default function TaskFormScreen() {
+  // ALL HOOKS MUST REMAIN UNCONDITIONALLY AT THE TOP
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id?: string }>();
   const taskId = params.id;
   const isEditing = !!taskId;
 
-  const { tasks, isHydrated, addTask, updateTask, deleteTask } = useTasks();
+  const { tasks, isHydrated, error, retryHydration, addTask, updateTask, deleteTask } = useTasks();
 
   const existingTask = useMemo(() => {
     if (!taskId) return null;
@@ -67,7 +68,13 @@ export default function TaskFormScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync state when existingTask becomes available
+  const pickerDate = useMemo(() => {
+    const parsed = parseCivilDate(dueAt);
+    if (parsed) return new Date(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0);
+    return new Date();
+  }, [dueAt]);
+
+  // Sync state when existingTask becomes available after hydration
   useEffect(() => {
     if (existingTask) {
       setTitle(existingTask.title);
@@ -77,31 +84,54 @@ export default function TaskFormScreen() {
     }
   }, [existingTask]);
 
-  // Loading state while waiting for storage hydration
+  // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS DECLARED
+  // 1. Loading state while waiting for hydration
   if (!isHydrated) {
     return (
-      <View style={[styles.loadingContainer, { paddingTop: insets.top, backgroundColor: colors.paper }]}>
-        <ActivityIndicator size="large" color={colors.ink} />
-        <ThemedText variant="body" color={colors.muted} style={{ marginTop: spacing.md }}>
-          Carregando informações da atividade...
-        </ThemedText>
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.paper }]}>
+        <View style={styles.contentConstraint}>
+          <Header title="Carregando" showBack />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.ink} />
+            <ThemedText variant="body" color={colors.muted} style={{ marginTop: spacing.md }}>
+              Carregando informações da atividade...
+            </ThemedText>
+
+            {error ? (
+              <View style={styles.errorBox}>
+                <Feather name="alert-triangle" size={18} color={colors.coral} />
+                <ThemedText variant="caption" color={colors.coral} style={styles.errorBoxText}>
+                  {error}
+                </ThemedText>
+                <Button
+                  title="Tentar"
+                  size="sm"
+                  variant="outline"
+                  onPress={() => retryHydration().catch(() => {})}
+                />
+              </View>
+            ) : null}
+          </View>
+        </View>
       </View>
     );
   }
 
-  // If editing an ID that does not exist in tasks, show explicit error and block save
+  // 2. Invalid ID guard: editing an ID that does not exist in tasks
   if (isEditing && !existingTask) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.paper }]}>
-        <Header title="Atividade não encontrada" showBack />
-        <View style={styles.notFoundWrapper}>
-          <EmptyState
-            title="Atividade inexistente"
-            description="O identificador fornecido não corresponde a nenhuma atividade cadastrada ou ela foi removida."
-            actionTitle="Voltar ao início"
-            onAction={() => router.replace('/')}
-            iconName="alert-triangle"
-          />
+        <View style={styles.contentConstraint}>
+          <Header title="Atividade não encontrada" showBack />
+          <View style={styles.notFoundWrapper}>
+            <EmptyState
+              title="Atividade inexistente"
+              description="O identificador fornecido não corresponde a nenhuma atividade cadastrada ou ela foi removida."
+              actionTitle="Voltar ao início"
+              onAction={() => router.replace('/')}
+              iconName="alert-triangle"
+            />
+          </View>
         </View>
       </View>
     );
@@ -193,257 +223,270 @@ export default function TaskFormScreen() {
     }
   };
 
-  const pickerDate = useMemo(() => {
-    const parsed = parseCivilDate(dueAt);
-    if (parsed) return new Date(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0);
-    return new Date();
-  }, [dueAt]);
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.paper }]}
     >
-      <View style={{ paddingTop: insets.top }}>
-        <Header
-          title={isEditing ? 'Editar atividade' : 'Nova atividade'}
-          subtitle="Preencha os dados da entrega acadêmica"
-          showBack
-          rightAction={
-            isEditing ? (
-              <Pressable
-                onPress={handleDelete}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="Excluir atividade"
-                style={({ pressed }) => [styles.deleteHeaderBtn, pressed && styles.pressed]}
-              >
-                <Feather name="trash-2" size={18} color={colors.coral} />
-              </Pressable>
-            ) : null
-          }
-        />
-      </View>
-
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Math.max(insets.bottom, 24) + spacing.xl },
+          {
+            paddingTop: insets.top,
+            paddingBottom: Math.max(insets.bottom, 24) + spacing.xl,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {generalError && (
-          <View style={styles.errorBox}>
-            <Feather name="alert-triangle" size={18} color={colors.coral} />
-            <ThemedText variant="label" color={colors.coral} style={styles.errorBoxText}>
-              {generalError}
-            </ThemedText>
-          </View>
-        )}
-
-        {/* Título */}
-        <View style={styles.fieldGroup}>
-          <ThemedText variant="label" style={styles.fieldLabel}>
-            TÍTULO DA ATIVIDADE *
-          </ThemedText>
-          <TextInput
-            value={title}
-            onChangeText={(txt) => {
-              setTitle(txt);
-              if (errors.title) setErrors((prev) => ({ ...prev, title: undefined }));
-            }}
-            placeholder="Ex.: Revisar árvores binárias"
-            placeholderTextColor={colors.muted}
-            accessibilityLabel="Título da atividade"
-            style={[styles.input, errors.title && styles.inputError]}
-          />
-          {errors.title && (
-            <ThemedText variant="caption" color={colors.coral} style={styles.fieldError}>
-              {errors.title}
-            </ThemedText>
-          )}
-        </View>
-
-        {/* Disciplina */}
-        <View style={styles.fieldGroup}>
-          <ThemedText variant="label" style={styles.fieldLabel}>
-            DISCIPLINA *
-          </ThemedText>
-          <TextInput
-            value={discipline}
-            onChangeText={(txt) => {
-              setDiscipline(txt);
-              if (errors.discipline) setErrors((prev) => ({ ...prev, discipline: undefined }));
-            }}
-            placeholder="Ex.: Desenvolvimento Mobile"
-            placeholderTextColor={colors.muted}
-            accessibilityLabel="Disciplina"
-            style={[styles.input, errors.discipline && styles.inputError]}
-          />
-          {errors.discipline && (
-            <ThemedText variant="caption" color={colors.coral} style={styles.fieldError}>
-              {errors.discipline}
-            </ThemedText>
-          )}
-
-          {/* Quick suggestions */}
-          <ThemedText variant="caption" color={colors.muted} style={styles.suggestionsTitle}>
-            Sugestões do semestre:
-          </ThemedText>
-          <View style={styles.chipsContainer}>
-            {SUGGESTED_DISCIPLINES.map((d) => {
-              const isSelected = discipline.toLowerCase() === d.toLowerCase();
-              return (
+        <View style={styles.contentConstraint}>
+          <Header
+            title={isEditing ? 'Editar atividade' : 'Nova atividade'}
+            subtitle="Preencha os dados da entrega acadêmica"
+            showBack
+            rightAction={
+              isEditing ? (
                 <Pressable
-                  key={d}
-                  onPress={() => {
-                    setDiscipline(d);
-                    if (errors.discipline) setErrors((prev) => ({ ...prev, discipline: undefined }));
-                  }}
-                  hitSlop={6}
-                  style={[styles.chip, isSelected && styles.chipSelected]}
+                  onPress={handleDelete}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel="Excluir atividade"
+                  style={({ pressed }) => [styles.deleteHeaderBtn, pressed && styles.pressed]}
                 >
-                  <ThemedText
-                    variant="caption"
-                    color={isSelected ? colors.white : colors.ink}
-                    style={isSelected ? styles.chipTextSelected : undefined}
-                  >
-                    {d}
-                  </ThemedText>
+                  <Feather name="trash-2" size={18} color={colors.coral} />
                 </Pressable>
-              );
-            })}
-          </View>
-        </View>
+              ) : null
+            }
+          />
 
-        {/* Prazo */}
-        <View style={styles.fieldGroup}>
-          <ThemedText variant="label" style={styles.fieldLabel}>
-            PRAZO DE ENTREGA *
-          </ThemedText>
-
-          <View style={styles.dateSelectorRow}>
-            <View style={styles.dateSelectedDisplay}>
-              <Feather name="calendar" size={16} color={colors.blue} />
-              <ThemedText variant="headline" style={styles.dateDisplayText}>
-                {formatFriendlyDate(dueAt)} ({dueAt})
+          {error && (
+            <View style={styles.errorBox}>
+              <Feather name="alert-triangle" size={18} color={colors.coral} />
+              <ThemedText variant="caption" color={colors.coral} style={styles.errorBoxText}>
+                {error}
               </ThemedText>
-            </View>
-
-            {Platform.OS !== 'web' ? (
               <Button
-                title="Outra data"
+                title="Tentar"
                 size="sm"
                 variant="outline"
-                onPress={() => setShowDatePicker(true)}
-                leftIcon={<Feather name="edit-3" size={14} color={colors.ink} />}
+                onPress={() => retryHydration().catch(() => {})}
               />
-            ) : null}
-          </View>
-
-          {/* On web: provide direct text input for custom date YYYY-MM-DD */}
-          {Platform.OS === 'web' && (
-            <TextInput
-              value={dueAt}
-              onChangeText={(txt) => {
-                setDueAt(txt);
-                if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
-              }}
-              placeholder="AAAA-MM-DD"
-              placeholderTextColor={colors.muted}
-              accessibilityLabel="Prazo YYYY-MM-DD"
-              style={[styles.input, { marginBottom: spacing.xs }, errors.dueAt && styles.inputError]}
-            />
+            </View>
           )}
 
-          {/* Quick Date Chips */}
-          <View style={styles.chipsContainer}>
-            {[
-              { label: 'Hoje', val: today },
-              { label: 'Amanhã', val: tomorrow },
-              { label: 'Em 3 dias', val: in3Days },
-              { label: 'Em 1 semana', val: in7Days },
-            ].map((item) => {
-              const isSelected = dueAt === item.val;
-              return (
-                <Pressable
-                  key={item.label}
-                  onPress={() => {
-                    setDueAt(item.val);
-                    if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
-                  }}
-                  hitSlop={8}
-                  style={[styles.chip, isSelected && styles.chipSelected]}
-                >
-                  <ThemedText
-                    variant="caption"
-                    color={isSelected ? colors.white : colors.ink}
-                    style={isSelected ? styles.chipTextSelected : undefined}
-                  >
-                    {item.label}
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {Platform.OS !== 'web' && showDatePicker && (
-            <DateTimePicker
-              value={pickerDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-            />
+          {generalError && (
+            <View style={styles.errorBox}>
+              <Feather name="alert-triangle" size={18} color={colors.coral} />
+              <ThemedText variant="label" color={colors.coral} style={styles.errorBoxText}>
+                {generalError}
+              </ThemedText>
+            </View>
           )}
 
-          {errors.dueAt && (
-            <ThemedText variant="caption" color={colors.coral} style={styles.fieldError}>
-              {errors.dueAt}
+          {/* Título */}
+          <View style={styles.fieldGroup}>
+            <ThemedText variant="label" style={styles.fieldLabel}>
+              TÍTULO DA ATIVIDADE *
             </ThemedText>
-          )}
-        </View>
+            <TextInput
+              value={title}
+              onChangeText={(txt) => {
+                setTitle(txt);
+                if (errors.title) setErrors((prev) => ({ ...prev, title: undefined }));
+              }}
+              placeholder="Ex.: Revisar árvores binárias"
+              placeholderTextColor={colors.muted}
+              accessibilityLabel="Título da atividade"
+              style={[styles.input, errors.title && styles.inputError]}
+            />
+            {errors.title && (
+              <ThemedText variant="caption" color={colors.coral} style={styles.fieldError}>
+                {errors.title}
+              </ThemedText>
+            )}
+          </View>
 
-        {/* Descrição */}
-        <View style={styles.fieldGroup}>
-          <ThemedText variant="label" style={styles.fieldLabel}>
-            DESCRIÇÃO (OPCIONAL)
-          </ThemedText>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Detalhes, requisitos ou links da entrega..."
-            placeholderTextColor={colors.muted}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            accessibilityLabel="Descrição da atividade"
-            style={[styles.input, styles.textArea]}
-          />
-        </View>
+          {/* Disciplina */}
+          <View style={styles.fieldGroup}>
+            <ThemedText variant="label" style={styles.fieldLabel}>
+              DISCIPLINA *
+            </ThemedText>
+            <TextInput
+              value={discipline}
+              onChangeText={(txt) => {
+                setDiscipline(txt);
+                if (errors.discipline) setErrors((prev) => ({ ...prev, discipline: undefined }));
+              }}
+              placeholder="Ex.: Desenvolvimento Mobile"
+              placeholderTextColor={colors.muted}
+              accessibilityLabel="Disciplina"
+              style={[styles.input, errors.discipline && styles.inputError]}
+            />
+            {errors.discipline && (
+              <ThemedText variant="caption" color={colors.coral} style={styles.fieldError}>
+                {errors.discipline}
+              </ThemedText>
+            )}
 
-        {/* CTA Salvar */}
-        <View style={styles.actionRow}>
-          <Button
-            title={isEditing ? 'Salvar alterações' : 'Cadastrar atividade'}
-            size="lg"
-            variant="primary"
-            fullWidth
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            onPress={handleSave}
-            leftIcon={<Feather name="check" size={20} color={colors.white} />}
-          />
-        </View>
+            {/* Quick suggestions */}
+            <ThemedText variant="caption" color={colors.muted} style={styles.suggestionsTitle}>
+              Sugestões do semestre:
+            </ThemedText>
+            <View style={styles.chipsContainer}>
+              {SUGGESTED_DISCIPLINES.map((d) => {
+                const isSelected = discipline.toLowerCase() === d.toLowerCase();
+                return (
+                  <Pressable
+                    key={d}
+                    onPress={() => {
+                      setDiscipline(d);
+                      if (errors.discipline) setErrors((prev) => ({ ...prev, discipline: undefined }));
+                    }}
+                    hitSlop={6}
+                    style={[styles.chip, isSelected && styles.chipSelected]}
+                  >
+                    <ThemedText
+                      variant="caption"
+                      color={isSelected ? colors.white : colors.ink}
+                      style={isSelected ? styles.chipTextSelected : undefined}
+                    >
+                      {d}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
-        <View style={styles.cancelRow}>
-          <Button
-            title="Cancelar"
-            size="md"
-            variant="ghost"
-            fullWidth
-            onPress={() => router.back()}
-          />
+          {/* Prazo */}
+          <View style={styles.fieldGroup}>
+            <ThemedText variant="label" style={styles.fieldLabel}>
+              PRAZO DE ENTREGA *
+            </ThemedText>
+
+            <View style={styles.dateSelectorRow}>
+              <View style={styles.dateSelectedDisplay}>
+                <Feather name="calendar" size={16} color={colors.blue} />
+                <ThemedText variant="headline" style={styles.dateDisplayText}>
+                  {formatFriendlyDate(dueAt)} ({dueAt})
+                </ThemedText>
+              </View>
+
+              {Platform.OS !== 'web' ? (
+                <Button
+                  title="Outra data"
+                  size="sm"
+                  variant="outline"
+                  onPress={() => setShowDatePicker(true)}
+                  leftIcon={<Feather name="edit-3" size={14} color={colors.ink} />}
+                  style={styles.otherDateBtn}
+                />
+              ) : null}
+            </View>
+
+            {/* On web: provide direct text input for custom date YYYY-MM-DD */}
+            {Platform.OS === 'web' && (
+              <TextInput
+                value={dueAt}
+                onChangeText={(txt) => {
+                  setDueAt(txt);
+                  if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
+                }}
+                placeholder="AAAA-MM-DD"
+                placeholderTextColor={colors.muted}
+                accessibilityLabel="Prazo YYYY-MM-DD"
+                style={[styles.input, { marginBottom: spacing.xs }, errors.dueAt && styles.inputError]}
+              />
+            )}
+
+            {/* Quick Date Chips */}
+            <View style={styles.chipsContainer}>
+              {[
+                { label: 'Hoje', val: today },
+                { label: 'Amanhã', val: tomorrow },
+                { label: 'Em 3 dias', val: in3Days },
+                { label: 'Em 1 semana', val: in7Days },
+              ].map((item) => {
+                const isSelected = dueAt === item.val;
+                return (
+                  <Pressable
+                    key={item.label}
+                    onPress={() => {
+                      setDueAt(item.val);
+                      if (errors.dueAt) setErrors((prev) => ({ ...prev, dueAt: undefined }));
+                    }}
+                    hitSlop={8}
+                    style={[styles.chip, isSelected && styles.chipSelected]}
+                  >
+                    <ThemedText
+                      variant="caption"
+                      color={isSelected ? colors.white : colors.ink}
+                      style={isSelected ? styles.chipTextSelected : undefined}
+                    >
+                      {item.label}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {Platform.OS !== 'web' && showDatePicker && (
+              <DateTimePicker
+                value={pickerDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+              />
+            )}
+
+            {errors.dueAt && (
+              <ThemedText variant="caption" color={colors.coral} style={styles.fieldError}>
+                {errors.dueAt}
+              </ThemedText>
+            )}
+          </View>
+
+          {/* Descrição */}
+          <View style={styles.fieldGroup}>
+            <ThemedText variant="label" style={styles.fieldLabel}>
+              DESCRIÇÃO (OPCIONAL)
+            </ThemedText>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Detalhes, requisitos ou links da entrega..."
+              placeholderTextColor={colors.muted}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              accessibilityLabel="Descrição da atividade"
+              style={[styles.input, styles.textArea]}
+            />
+          </View>
+
+          {/* CTA Salvar */}
+          <View style={styles.actionRow}>
+            <Button
+              title={isEditing ? 'Salvar alterações' : 'Cadastrar atividade'}
+              size="lg"
+              variant="primary"
+              fullWidth
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              onPress={handleSave}
+              leftIcon={<Feather name="check" size={20} color={colors.white} />}
+            />
+          </View>
+
+          <View style={styles.cancelRow}>
+            <Button
+              title="Cancelar"
+              size="md"
+              variant="ghost"
+              fullWidth
+              onPress={() => router.back()}
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -461,18 +504,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingHorizontal: spacing.md,
+  },
+  contentConstraint: {
+    width: '100%',
+    maxWidth: layout.maxWidth,
+    alignSelf: 'center',
+  },
   loadingContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
+    minHeight: 200,
   },
   notFoundWrapper: {
-    padding: spacing.md,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
+    paddingVertical: spacing.md,
   },
   deleteHeaderBtn: {
     padding: spacing.xs,
@@ -558,20 +605,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
     backgroundColor: colors.white,
     borderColor: colors.border,
     borderWidth: 1.5,
     borderRadius: radius.sm,
     padding: spacing.sm,
     marginBottom: spacing.xs,
+    gap: spacing.sm,
   },
   dateSelectedDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    flexShrink: 1,
   },
   dateDisplayText: {
     fontSize: 15,
+  },
+  otherDateBtn: {
+    minHeight: 36,
   },
   actionRow: {
     marginTop: spacing.md,

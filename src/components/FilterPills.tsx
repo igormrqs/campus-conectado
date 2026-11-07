@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { ThemedText } from './ThemedText';
 import { colors, radius, spacing, layout } from '@/src/design/tokens';
 import { triggerHaptic } from '@/src/design/platform-utils';
@@ -23,6 +24,8 @@ export interface FilterPillsProps {
 }
 
 export function FilterPills({ activeFilter, onSelect, counts }: FilterPillsProps) {
+  const reducedMotion = useReducedMotion();
+
   const filters: FilterItem[] = [
     { key: 'all', label: 'Todas', count: counts?.all },
     { key: 'pending', label: 'Pendentes', count: counts?.pending },
@@ -47,7 +50,11 @@ export function FilterPills({ activeFilter, onSelect, counts }: FilterPillsProps
             accessibilityState={{ selected: isActive }}
             accessibilityLabel={`${filter.label}${filter.count !== undefined ? `, ${filter.count} itens` : ''}`}
             hitSlop={8}
-            style={[styles.pill, isActive && styles.pillActive]}
+            style={({ pressed }) => [
+              styles.pill,
+              isActive && styles.pillActive,
+              pressed && !isActive && styles.pillPressed,
+            ]}
           >
             <ThemedText
               variant="label"
@@ -82,6 +89,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
   },
   pill: {
     flex: 1,
@@ -94,6 +102,9 @@ const styles = StyleSheet.create({
   },
   pillActive: {
     backgroundColor: colors.ink,
+  },
+  pillPressed: {
+    backgroundColor: 'rgba(23, 26, 33, 0.08)',
   },
   pillText: {
     fontSize: 13,

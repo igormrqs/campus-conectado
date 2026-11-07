@@ -47,10 +47,6 @@ export function Header({
           >
             <Feather name="arrow-left" size={22} color={colors.ink} />
           </Pressable>
-        ) : eyebrow ? (
-          <ThemedText variant="caption" color={colors.muted} style={styles.eyebrow}>
-            {eyebrow.toUpperCase()}
-          </ThemedText>
         ) : (
           <View style={styles.brandMark}>
             <View style={styles.brandDot} />
@@ -62,6 +58,12 @@ export function Header({
 
         {rightAction ? <View style={styles.rightAction}>{rightAction}</View> : null}
       </View>
+
+      {eyebrow ? (
+        <ThemedText variant="caption" color={colors.muted} style={styles.eyebrow}>
+          {eyebrow.toUpperCase()}
+        </ThemedText>
+      ) : null}
 
       {title ? (
         <ThemedText variant="title" style={styles.title}>
@@ -81,8 +83,9 @@ export function Header({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.xs,
     paddingBottom: spacing.sm,
+    width: '100%',
   },
   topRow: {
     flexDirection: 'row',
@@ -118,6 +121,7 @@ const styles = StyleSheet.create({
   eyebrow: {
     letterSpacing: 1.2,
     fontWeight: '600',
+    marginTop: 2,
   },
   title: {
     marginTop: spacing.xs,

@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTasks, Task } from '@/src/features/tasks';
-import { colors, spacing, radius } from '@/src/design/tokens';
+import { colors, spacing, radius, layout } from '@/src/design/tokens';
 import { isOverdue } from '@/src/design/date-utils';
 import { showAlert } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
@@ -106,120 +106,125 @@ export default function ActivitiesScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.paper }]}>
-      <View style={{ paddingTop: insets.top }}>
-        <Header
-          title="Atividades"
-          subtitle={`${tasks.length} cadastradas no total`}
-          showBack
-          rightAction={
-            <Button
-              title="Nova"
-              size="sm"
-              variant="primary"
-              onPress={() => router.push('/task-form')}
-              leftIcon={<Feather name="plus" size={16} color={colors.white} />}
-            />
-          }
-        />
-      </View>
-
-      {error ? (
-        <View style={styles.errorBanner}>
-          <View style={styles.errorIcon}>
-            <Feather name="alert-triangle" size={20} color={colors.coral} />
-          </View>
-          <View style={styles.errorContent}>
-            <ThemedText variant="headline" color={colors.coral}>
-              Erro de carregamento
-            </ThemedText>
-            <ThemedText variant="caption" color={colors.muted}>
-              {error}
-            </ThemedText>
-          </View>
-          <Button
-            title="Tentar"
-            size="sm"
-            variant="outline"
-            onPress={() => retryHydration().catch(() => {})}
-          />
-        </View>
-      ) : null}
-
-      <View style={styles.filterSection}>
-        <FilterPills
-          activeFilter={activeFilter}
-          onSelect={setActiveFilter}
-          counts={counts}
-        />
-      </View>
-
-      {disciplines.length > 1 && (
-        <View style={styles.disciplineScrollWrapper}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.disciplineRow}
-          >
-            <Button
-              title="Todas as matérias"
-              size="sm"
-              variant={selectedDiscipline === null ? 'secondary' : 'outline'}
-              onPress={() => setSelectedDiscipline(null)}
-              style={styles.disciplinePill}
-            />
-            {disciplines.map((d) => (
-              <Button
-                key={d}
-                title={d}
-                size="sm"
-                variant={selectedDiscipline === d ? 'secondary' : 'outline'}
-                onPress={() => setSelectedDiscipline(selectedDiscipline === d ? null : d)}
-                style={styles.disciplinePill}
-              />
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
       <ScrollView
         contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: Math.max(insets.bottom, 24) + spacing.xl },
+          styles.scrollContainer,
+          {
+            paddingTop: insets.top,
+            paddingBottom: Math.max(insets.bottom, 24) + spacing.xl,
+          },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {filteredTasks.length === 0 ? (
-          <EmptyState
-            title={
-              activeFilter === 'completed'
-                ? 'Nenhuma concluída'
-                : activeFilter === 'pending'
-                ? 'Tudo em dia!'
-                : 'Nenhuma atividade encontrada'
+        <View style={styles.contentConstraint}>
+          <Header
+            title="Atividades"
+            subtitle={`${tasks.length} cadastradas no total`}
+            showBack
+            rightAction={
+              <Button
+                title="Nova"
+                size="sm"
+                variant="primary"
+                onPress={() => router.push('/task-form')}
+                leftIcon={<Feather name="plus" size={16} color={colors.white} />}
+              />
             }
-            description={
-              activeFilter === 'completed'
-                ? 'Conclua suas tarefas na lista para vê-las aqui.'
-                : activeFilter === 'pending'
-                ? 'Você não possui atividades pendentes no momento.'
-                : 'Cadastre suas primeiras atividades para organizar suas entregas.'
-            }
-            actionTitle={activeFilter !== 'completed' ? 'Nova atividade' : undefined}
-            onAction={() => router.push('/task-form')}
-            iconName={activeFilter === 'completed' ? 'check-circle' : 'file-text'}
           />
-        ) : (
-          filteredTasks.map((task, idx) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              index={idx}
-              onToggle={handleToggleTask}
-              onPress={handleTaskPress}
-              onDelete={handleDeleteTask}
+
+          {error ? (
+            <View style={styles.errorBanner}>
+              <View style={styles.errorIcon}>
+                <Feather name="alert-triangle" size={20} color={colors.coral} />
+              </View>
+              <View style={styles.errorContent}>
+                <ThemedText variant="headline" color={colors.coral}>
+                  Erro de carregamento
+                </ThemedText>
+                <ThemedText variant="caption" color={colors.muted}>
+                  {error}
+                </ThemedText>
+              </View>
+              <Button
+                title="Tentar"
+                size="sm"
+                variant="outline"
+                onPress={() => retryHydration().catch(() => {})}
+              />
+            </View>
+          ) : null}
+
+          <View style={styles.filterSection}>
+            <FilterPills
+              activeFilter={activeFilter}
+              onSelect={setActiveFilter}
+              counts={counts}
             />
-          ))
-        )}
+          </View>
+
+          {disciplines.length > 1 && (
+            <View style={styles.disciplineScrollWrapper}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.disciplineRow}
+              >
+                <Button
+                  title="Todas as matérias"
+                  size="sm"
+                  variant={selectedDiscipline === null ? 'secondary' : 'outline'}
+                  onPress={() => setSelectedDiscipline(null)}
+                  style={styles.disciplinePill}
+                />
+                {disciplines.map((d) => (
+                  <Button
+                    key={d}
+                    title={d}
+                    size="sm"
+                    variant={selectedDiscipline === d ? 'secondary' : 'outline'}
+                    onPress={() => setSelectedDiscipline(selectedDiscipline === d ? null : d)}
+                    style={styles.disciplinePill}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          <View style={styles.listSection}>
+            {filteredTasks.length === 0 ? (
+              <EmptyState
+                title={
+                  activeFilter === 'completed'
+                    ? 'Nenhuma concluída'
+                    : activeFilter === 'pending'
+                    ? 'Tudo em dia!'
+                    : 'Nenhuma atividade encontrada'
+                }
+                description={
+                  activeFilter === 'completed'
+                    ? 'Conclua suas tarefas na lista para vê-las aqui.'
+                    : activeFilter === 'pending'
+                    ? 'Você não possui atividades pendentes no momento.'
+                    : 'Cadastre suas primeiras atividades para organizar suas entregas.'
+                }
+                actionTitle={activeFilter !== 'completed' ? 'Nova atividade' : undefined}
+                onAction={() => router.push('/task-form')}
+                iconName={activeFilter === 'completed' ? 'check-circle' : 'file-text'}
+              />
+            ) : (
+              filteredTasks.map((task, idx) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={idx}
+                  onToggle={handleToggleTask}
+                  onPress={handleTaskPress}
+                  onDelete={handleDeleteTask}
+                />
+              ))
+            )}
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -228,6 +233,14 @@ export default function ActivitiesScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  scrollContainer: {
+    paddingHorizontal: spacing.md,
+  },
+  contentConstraint: {
+    width: '100%',
+    maxWidth: layout.maxWidth,
+    alignSelf: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -243,8 +256,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.md,
     padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.xs,
+    marginVertical: spacing.xs,
   },
   errorIcon: {
     marginRight: spacing.sm,
@@ -254,22 +266,19 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   filterSection: {
-    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   disciplineScrollWrapper: {
     paddingBottom: spacing.xs,
   },
   disciplineRow: {
-    paddingHorizontal: spacing.md,
     gap: spacing.xs + 2,
   },
   disciplinePill: {
     minHeight: 36,
     paddingHorizontal: spacing.sm + 4,
   },
-  listContent: {
-    paddingHorizontal: spacing.md,
+  listSection: {
     paddingTop: spacing.xs,
   },
 });

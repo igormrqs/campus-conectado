@@ -91,16 +91,12 @@ export function TaskCard({
 
   return (
     <Animated.View entering={enteringAnimation} style={styles.wrapper}>
-      <Pressable
-        onPress={() => onPress(task)}
-        accessibilityRole="button"
-        accessibilityLabel={`Atividade: ${task.title}, disciplina ${task.discipline}, prazo ${friendlyDate}`}
-        accessibilityHint="Toque para editar"
-        style={({ pressed }) => [
+      {/* Sibling controls pattern: outer container is a View, preventing DOM button nesting */}
+      <View
+        style={[
           styles.card,
           overdue && styles.cardOverdue,
           task.completed && styles.cardCompleted,
-          pressed && styles.cardPressed,
         ]}
       >
         <View style={styles.cardHeader}>
@@ -121,20 +117,19 @@ export function TaskCard({
             </ThemedText>
           </View>
 
-          <View style={styles.headerRightActions}>
-            <Pressable
-              onPress={handleDeletePrompt}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel={`Excluir ${task.title}`}
-              style={({ pressed }) => [styles.deleteBtn, pressed && styles.deleteBtnPressed]}
-            >
-              <Feather name="trash-2" size={16} color={colors.muted} />
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={handleDeletePrompt}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={`Excluir ${task.title}`}
+            style={({ pressed }) => [styles.deleteBtn, pressed && styles.deleteBtnPressed]}
+          >
+            <Feather name="trash-2" size={16} color={colors.muted} />
+          </Pressable>
         </View>
 
         <View style={styles.bodyRow}>
+          {/* Checkbox is an independent sibling pressable */}
           <Pressable
             onPress={handleToggle}
             hitSlop={12}
@@ -155,7 +150,17 @@ export function TaskCard({
             </Animated.View>
           </Pressable>
 
-          <View style={styles.contentColumn}>
+          {/* Text content is an independent sibling pressable for editing */}
+          <Pressable
+            onPress={() => onPress(task)}
+            accessibilityRole="button"
+            accessibilityLabel={`Editar atividade ${task.title}`}
+            accessibilityHint="Toque para editar"
+            style={({ pressed }) => [
+              styles.contentColumn,
+              pressed && styles.contentPressed,
+            ]}
+          >
             <ThemedText
               variant="headline"
               color={task.completed ? colors.muted : colors.ink}
@@ -184,18 +189,19 @@ export function TaskCard({
                   color={overdue ? colors.coral : colors.muted}
                   style={styles.dateIcon}
                 />
+                {/* High contrast: ink color with coral icon and label for overdue */}
                 <ThemedText
                   variant="caption"
-                  color={overdue ? colors.coral : colors.muted}
+                  color={colors.ink}
                   style={[styles.dateText, overdue && styles.dateTextOverdue]}
                 >
-                  {friendlyDate}
+                  {overdue ? `Atrasada: ${friendlyDate}` : friendlyDate}
                 </ThemedText>
               </View>
             </View>
-          </View>
+          </Pressable>
         </View>
-      </Pressable>
+      </View>
     </Animated.View>
   );
 }
@@ -203,6 +209,7 @@ export function TaskCard({
 const styles = StyleSheet.create({
   wrapper: {
     marginVertical: spacing.xs + 2,
+    width: '100%',
   },
   card: {
     backgroundColor: colors.white,
@@ -220,10 +227,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.softPaper,
     borderColor: colors.border,
     opacity: 0.85,
-  },
-  cardPressed: {
-    transform: [{ scale: 0.99 }],
-    opacity: 0.92,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -249,14 +252,12 @@ const styles = StyleSheet.create({
   disciplineText: {
     fontWeight: '600',
   },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   deleteBtn: {
     padding: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 36,
+    minHeight: 36,
   },
   deleteBtnPressed: {
     opacity: 0.5,
@@ -293,6 +294,10 @@ const styles = StyleSheet.create({
   contentColumn: {
     flex: 1,
     justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  contentPressed: {
+    opacity: 0.75,
   },
   title: {
     fontSize: 17,
@@ -321,6 +326,8 @@ const styles = StyleSheet.create({
   },
   dateChipOverdue: {
     backgroundColor: 'rgba(230, 103, 77, 0.12)',
+    borderColor: 'rgba(230, 103, 77, 0.25)',
+    borderWidth: 1,
   },
   dateIcon: {
     marginRight: spacing.xs,

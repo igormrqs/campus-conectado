@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTasks, Task } from '@/src/features/tasks';
-import { colors, spacing, radius } from '@/src/design/tokens';
+import { colors, spacing, radius, layout } from '@/src/design/tokens';
 import { formatEditorialDate, isOverdue } from '@/src/design/date-utils';
 import { confirmAction, showAlert, triggerHaptic } from '@/src/design/platform-utils';
 import { ThemedText } from '@/src/components/ThemedText';
@@ -31,18 +31,17 @@ export default function HomeScreen() {
   const completedCount = tasks.filter((t) => t.completed).length;
   const overdueCount = tasks.filter((t) => isOverdue(t.dueAt, t.completed)).length;
 
-  // Radar tasks: overdue or due today/tomorrow, or top pending tasks
+  // Radar tasks: exactly 2 compact cards prioritising overdue and pending
   const radarTasks = useMemo(() => {
     const pending = tasks.filter((t) => !t.completed);
     // Sort: overdue first, then by dueAt
     pending.sort((a, b) => a.dueAt.localeCompare(b.dueAt));
 
-    if (pending.length >= 3) {
-      return pending.slice(0, 3);
+    if (pending.length >= 2) {
+      return pending.slice(0, 2);
     }
-    // If few pending, add some completed to fill up to 3
     const completed = tasks.filter((t) => t.completed);
-    return [...pending, ...completed].slice(0, 3);
+    return [...pending, ...completed].slice(0, 2);
   }, [tasks]);
 
   const handleTaskPress = (task: Task) => {
@@ -112,98 +111,121 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Header eyebrow={editorialDate} />
+        <View style={styles.contentConstraint}>
+          {/* Header with explicit brand Campus Conectado and date stamp */}
+          <Header
+            eyebrow={editorialDate}
+            rightAction={
+              <Button
+                title="Nova"
+                size="sm"
+                variant="primary"
+                onPress={() => router.push('/task-form')}
+                leftIcon={<Feather name="plus" size={16} color={colors.white} />}
+              />
+            }
+          />
 
-        <View style={styles.heroSection}>
-          <ThemedText variant="hero" style={styles.heroTitle}>
-            Seu semestre{'\n'}tem ritmo.
-          </ThemedText>
-        </View>
+          {/* Hero section */}
+          <View style={styles.heroSection}>
+            <ThemedText variant="hero" style={styles.heroTitle}>
+              Seu semestre{'\n'}tem ritmo.
+            </ThemedText>
+          </View>
 
-        {error ? (
-          <View style={styles.errorBanner}>
-            <View style={styles.errorIcon}>
-              <Feather name="alert-triangle" size={20} color={colors.coral} />
+          {error ? (
+            <View style={styles.errorBanner}>
+              <View style={styles.errorIcon}>
+                <Feather name="alert-triangle" size={20} color={colors.coral} />
+              </View>
+              <View style={styles.errorContent}>
+                <ThemedText variant="headline" color={colors.coral}>
+                  Erro de armazenamento
+                </ThemedText>
+                <ThemedText variant="caption" color={colors.muted}>
+                  {error}
+                </ThemedText>
+              </View>
+              <Button
+                title="Tentar"
+                size="sm"
+                variant="outline"
+                onPress={() => retryHydration().catch(() => {})}
+              />
             </View>
-            <View style={styles.errorContent}>
-              <ThemedText variant="headline" color={colors.coral}>
-                Erro de armazenamento
+          ) : null}
+
+          <ProgressCard
+            total={totalCount}
+            completed={completedCount}
+            overdueCount={overdueCount}
+          />
+
+          {/* Section: Hoje no radar with Ver todas */}
+          <View style={styles.sectionHeaderRow}>
+            <View>
+              <ThemedText variant="section" style={styles.sectionTitle}>
+                Hoje no radar
               </ThemedText>
               <ThemedText variant="caption" color={colors.muted}>
-                {error}
+                Prioridades imediatas do semestre
               </ThemedText>
             </View>
             <Button
-              title="Tentar"
-              size="sm"
-              variant="outline"
-              onPress={() => retryHydration().catch(() => {})}
-            />
-          </View>
-        ) : null}
-
-        <ProgressCard
-          total={totalCount}
-          completed={completedCount}
-          overdueCount={overdueCount}
-        />
-
-        <View style={styles.sectionHeaderRow}>
-          <ThemedText variant="section" style={styles.sectionTitle}>
-            Hoje no radar
-          </ThemedText>
-          <Button
-            title="Ver todas"
-            variant="ghost"
-            size="sm"
-            onPress={() => router.push('/activities')}
-            rightIcon={<Feather name="chevron-right" size={16} color={colors.ink} />}
-          />
-        </View>
-
-        {radarTasks.length === 0 ? (
-          <EmptyState
-            title="Tudo tranquilo no radar"
-            description="Você não possui atividades pendentes urgentes para hoje."
-            actionTitle="Adicionar atividade"
-            onAction={() => router.push('/task-form')}
-            iconName="check-circle"
-          />
-        ) : (
-          radarTasks.map((task, idx) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              index={idx}
-              onToggle={handleToggleTask}
-              onPress={handleTaskPress}
-              onDelete={handleDeleteTask}
-            />
-          ))
-        )}
-
-        <View style={styles.primaryActionRow}>
-          <Button
-            title="Nova atividade"
-            size="lg"
-            variant="primary"
-            fullWidth
-            onPress={() => router.push('/task-form')}
-            leftIcon={<Feather name="plus" size={20} color={colors.white} />}
-          />
-        </View>
-
-        {__DEV__ && (
-          <View style={styles.devSection}>
-            <Button
-              title="Restaurar dados da demo"
+              title="Ver todas"
               variant="ghost"
               size="sm"
-              onPress={handleResetDemoPrompt}
-              leftIcon={<Feather name="refresh-cw" size={14} color={colors.muted} />}
+              onPress={() => router.push('/activities')}
+              rightIcon={<Feather name="chevron-right" size={16} color={colors.ink} />}
             />
           </View>
-        )}
+
+          {/* Exactly 2 compact cards */}
+          {radarTasks.length === 0 ? (
+            <EmptyState
+              title="Tudo tranquilo no radar"
+              description="Você não possui atividades pendentes urgentes para hoje."
+              actionTitle="Adicionar atividade"
+              onAction={() => router.push('/task-form')}
+              iconName="check-circle"
+            />
+          ) : (
+            radarTasks.map((task, idx) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                index={idx}
+                onToggle={handleToggleTask}
+                onPress={handleTaskPress}
+                onDelete={handleDeleteTask}
+              />
+            ))
+          )}
+
+          {/* Bottom actions */}
+          <View style={styles.bottomActionsRow}>
+            <Button
+              title="Ver todas as atividades"
+              size="lg"
+              variant="secondary"
+              fullWidth
+              onPress={() => router.push('/activities')}
+              rightIcon={<Feather name="arrow-right" size={18} color={colors.white} />}
+            />
+          </View>
+
+          {__DEV__ && (
+            <View style={styles.devSection}>
+              <Button
+                title="Restaurar dados da demo"
+                variant="ghost"
+                size="sm"
+                onPress={handleResetDemoPrompt}
+                leftIcon={<Feather name="refresh-cw" size={14} color={colors.muted} />}
+              />
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -215,6 +237,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.md,
+  },
+  contentConstraint: {
+    width: '100%',
+    maxWidth: layout.maxWidth,
+    alignSelf: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -238,16 +265,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
   sectionTitle: {
     letterSpacing: -0.3,
   },
-  primaryActionRow: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
+  bottomActionsRow: {
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
   errorBanner: {
     flexDirection: 'row',
