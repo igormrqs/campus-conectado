@@ -195,7 +195,7 @@ export function TaskCard({
                   color={colors.ink}
                   style={[styles.dateText, overdue && styles.dateTextOverdue]}
                 >
-                  {overdue ? `Atrasada: ${friendlyDate}` : friendlyDate}
+                  {friendlyDate}
                 </ThemedText>
               </View>
             </View>

@@ -116,13 +116,15 @@ export default function HomeScreen() {
           <Header
             eyebrow={editorialDate}
             rightAction={
-              <Button
-                title="Nova"
-                size="sm"
-                variant="primary"
-                onPress={() => router.push('/task-form')}
-                leftIcon={<Feather name="plus" size={16} color={colors.white} />}
-              />
+              error ? null : (
+                <Button
+                  title="Nova"
+                  size="sm"
+                  variant="primary"
+                  onPress={() => router.push('/task-form')}
+                  leftIcon={<Feather name="plus" size={16} color={colors.white} />}
+                />
+              )
             }
           />
 
@@ -147,72 +149,74 @@ export default function HomeScreen() {
                 </ThemedText>
               </View>
               <Button
-                title="Tentar"
+                title="Tentar novamente"
                 size="sm"
                 variant="outline"
                 onPress={() => retryHydration().catch(() => {})}
               />
             </View>
-          ) : null}
-
-          <ProgressCard
-            total={totalCount}
-            completed={completedCount}
-            overdueCount={overdueCount}
-          />
-
-          {/* Section: Hoje no radar with Ver todas */}
-          <View style={styles.sectionHeaderRow}>
-            <View>
-              <ThemedText variant="section" style={styles.sectionTitle}>
-                Hoje no radar
-              </ThemedText>
-              <ThemedText variant="caption" color={colors.muted}>
-                Prioridades imediatas do semestre
-              </ThemedText>
-            </View>
-            <Button
-              title="Ver todas"
-              variant="ghost"
-              size="sm"
-              onPress={() => router.push('/activities')}
-              rightIcon={<Feather name="chevron-right" size={16} color={colors.ink} />}
-            />
-          </View>
-
-          {/* Exactly 2 compact cards */}
-          {radarTasks.length === 0 ? (
-            <EmptyState
-              title="Tudo tranquilo no radar"
-              description="Você não possui atividades pendentes urgentes para hoje."
-              actionTitle="Adicionar atividade"
-              onAction={() => router.push('/task-form')}
-              iconName="check-circle"
-            />
           ) : (
-            radarTasks.map((task, idx) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                index={idx}
-                onToggle={handleToggleTask}
-                onPress={handleTaskPress}
-                onDelete={handleDeleteTask}
+            <>
+              <ProgressCard
+                total={totalCount}
+                completed={completedCount}
+                overdueCount={overdueCount}
               />
-            ))
-          )}
 
-          {/* Bottom actions */}
-          <View style={styles.bottomActionsRow}>
-            <Button
-              title="Ver todas as atividades"
-              size="lg"
-              variant="secondary"
-              fullWidth
-              onPress={() => router.push('/activities')}
-              rightIcon={<Feather name="arrow-right" size={18} color={colors.white} />}
-            />
-          </View>
+              {/* Section: Hoje no radar with Ver todas */}
+              <View style={styles.sectionHeaderRow}>
+                <View>
+                  <ThemedText variant="section" style={styles.sectionTitle}>
+                    Hoje no radar
+                  </ThemedText>
+                  <ThemedText variant="caption" color={colors.muted}>
+                    Prioridades imediatas do semestre
+                  </ThemedText>
+                </View>
+                <Button
+                  title="Ver todas"
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => router.push('/activities')}
+                  rightIcon={<Feather name="chevron-right" size={16} color={colors.ink} />}
+                />
+              </View>
+
+              {/* Exactly 2 compact cards */}
+              {radarTasks.length === 0 ? (
+                <EmptyState
+                  title="Tudo tranquilo no radar"
+                  description="Você não possui atividades pendentes urgentes para hoje."
+                  actionTitle="Adicionar atividade"
+                  onAction={() => router.push('/task-form')}
+                  iconName="check-circle"
+                />
+              ) : (
+                radarTasks.map((task, idx) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    index={idx}
+                    onToggle={handleToggleTask}
+                    onPress={handleTaskPress}
+                    onDelete={handleDeleteTask}
+                  />
+                ))
+              )}
+
+              {/* Bottom actions */}
+              <View style={styles.bottomActionsRow}>
+                <Button
+                  title="Ver todas as atividades"
+                  size="lg"
+                  variant="secondary"
+                  fullWidth
+                  onPress={() => router.push('/activities')}
+                  rightIcon={<Feather name="arrow-right" size={18} color={colors.white} />}
+                />
+              </View>
+            </>
+          )}
 
           {__DEV__ && (
             <View style={styles.devSection}>

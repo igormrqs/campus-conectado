@@ -83,6 +83,11 @@ npx expo export -p web
 ```
 **Resultado:** Saída com código 0. 1413 módulos empacotados com sucesso pelo Metro Bundler em 1,3 segundos.
 
+### D. Correção de Branches de Render em Estado de Erro
+- Em `app/activities.tsx`, quando `error` ocorre, os filtros, a lista e o `EmptyState` ("Nenhuma atividade encontrada" + CTA cadastrar) não são renderizados, exibindo exclusivamente o banner de erro com a ação de "Tentar novamente" (`retryHydration()`).
+- Em `app/index.tsx` (Home), quando `error` ocorre, o `ProgressCard` com totais zerados, o radar e o botão de ver atividades são omitidos, exibindo apenas o banner de erro com retry e evitando a ilusão de caderno vazio.
+- Em `src/components/TaskCard.tsx`, o prefixo duplicado `Atrasada: ` foi removido, exibindo a data amigável exata (ex.: `Ontem (atrasada)` ou `6 de nov (atrasada)`) sem alterar o layout do chip.
+
 ---
 
 ## 4. Limitações Conhecidas e Verificações Pendentes

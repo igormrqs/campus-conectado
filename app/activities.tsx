@@ -119,16 +119,18 @@ export default function ActivitiesScreen() {
         <View style={styles.contentConstraint}>
           <Header
             title="Atividades"
-            subtitle={`${tasks.length} cadastradas no total`}
+            subtitle={error ? undefined : `${tasks.length} cadastradas no total`}
             showBack
             rightAction={
-              <Button
-                title="Nova"
-                size="sm"
-                variant="primary"
-                onPress={() => router.push('/task-form')}
-                leftIcon={<Feather name="plus" size={16} color={colors.white} />}
-              />
+              error ? null : (
+                <Button
+                  title="Nova"
+                  size="sm"
+                  variant="primary"
+                  onPress={() => router.push('/task-form')}
+                  leftIcon={<Feather name="plus" size={16} color={colors.white} />}
+                />
+              )
             }
           />
 
@@ -146,84 +148,86 @@ export default function ActivitiesScreen() {
                 </ThemedText>
               </View>
               <Button
-                title="Tentar"
+                title="Tentar novamente"
                 size="sm"
                 variant="outline"
                 onPress={() => retryHydration().catch(() => {})}
               />
             </View>
-          ) : null}
-
-          <View style={styles.filterSection}>
-            <FilterPills
-              activeFilter={activeFilter}
-              onSelect={setActiveFilter}
-              counts={counts}
-            />
-          </View>
-
-          {disciplines.length > 1 && (
-            <View style={styles.disciplineScrollWrapper}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.disciplineRow}
-              >
-                <Button
-                  title="Todas as matérias"
-                  size="sm"
-                  variant={selectedDiscipline === null ? 'secondary' : 'outline'}
-                  onPress={() => setSelectedDiscipline(null)}
-                  style={styles.disciplinePill}
+          ) : (
+            <>
+              <View style={styles.filterSection}>
+                <FilterPills
+                  activeFilter={activeFilter}
+                  onSelect={setActiveFilter}
+                  counts={counts}
                 />
-                {disciplines.map((d) => (
-                  <Button
-                    key={d}
-                    title={d}
-                    size="sm"
-                    variant={selectedDiscipline === d ? 'secondary' : 'outline'}
-                    onPress={() => setSelectedDiscipline(selectedDiscipline === d ? null : d)}
-                    style={styles.disciplinePill}
+              </View>
+
+              {disciplines.length > 1 && (
+                <View style={styles.disciplineScrollWrapper}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.disciplineRow}
+                  >
+                    <Button
+                      title="Todas as matérias"
+                      size="sm"
+                      variant={selectedDiscipline === null ? 'secondary' : 'outline'}
+                      onPress={() => setSelectedDiscipline(null)}
+                      style={styles.disciplinePill}
+                    />
+                    {disciplines.map((d) => (
+                      <Button
+                        key={d}
+                        title={d}
+                        size="sm"
+                        variant={selectedDiscipline === d ? 'secondary' : 'outline'}
+                        onPress={() => setSelectedDiscipline(selectedDiscipline === d ? null : d)}
+                        style={styles.disciplinePill}
+                      />
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              <View style={styles.listSection}>
+                {filteredTasks.length === 0 ? (
+                  <EmptyState
+                    title={
+                      activeFilter === 'completed'
+                        ? 'Nenhuma concluída'
+                        : activeFilter === 'pending'
+                        ? 'Tudo em dia!'
+                        : 'Nenhuma atividade encontrada'
+                    }
+                    description={
+                      activeFilter === 'completed'
+                        ? 'Conclua suas tarefas na lista para vê-las aqui.'
+                        : activeFilter === 'pending'
+                        ? 'Você não possui atividades pendentes no momento.'
+                        : 'Cadastre suas primeiras atividades para organizar suas entregas.'
+                    }
+                    actionTitle={activeFilter !== 'completed' ? 'Nova atividade' : undefined}
+                    onAction={() => router.push('/task-form')}
+                    iconName={activeFilter === 'completed' ? 'check-circle' : 'file-text'}
                   />
-                ))}
-              </ScrollView>
-            </View>
+                ) : (
+                  filteredTasks.map((task, idx) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={idx}
+                      onToggle={handleToggleTask}
+                      onPress={handleTaskPress}
+                      onDelete={handleDeleteTask}
+                    />
+                  ))
+                )}
+              </View>
+            </>
           )}
-
-          <View style={styles.listSection}>
-            {filteredTasks.length === 0 ? (
-              <EmptyState
-                title={
-                  activeFilter === 'completed'
-                    ? 'Nenhuma concluída'
-                    : activeFilter === 'pending'
-                    ? 'Tudo em dia!'
-                    : 'Nenhuma atividade encontrada'
-                }
-                description={
-                  activeFilter === 'completed'
-                    ? 'Conclua suas tarefas na lista para vê-las aqui.'
-                    : activeFilter === 'pending'
-                    ? 'Você não possui atividades pendentes no momento.'
-                    : 'Cadastre suas primeiras atividades para organizar suas entregas.'
-                }
-                actionTitle={activeFilter !== 'completed' ? 'Nova atividade' : undefined}
-                onAction={() => router.push('/task-form')}
-                iconName={activeFilter === 'completed' ? 'check-circle' : 'file-text'}
-              />
-            ) : (
-              filteredTasks.map((task, idx) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  index={idx}
-                  onToggle={handleToggleTask}
-                  onPress={handleTaskPress}
-                  onDelete={handleDeleteTask}
-                />
-              ))
-            )}
-          </View>
         </View>
       </ScrollView>
     </View>
