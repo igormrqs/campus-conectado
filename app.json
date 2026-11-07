@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Campus Conectado",
+    "slug": "campus-conectado",
+    "scheme": "campus-conectado",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font",
+      "@react-native-community/datetimepicker"
+    ],
+    "android": {
+      "package": "br.edu.campusconectado.demo"
+    }
+  }
+}
