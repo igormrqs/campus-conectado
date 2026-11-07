@@ -50,22 +50,35 @@ Consulte [validação real](docs/VALIDATION.md) para resultados e limites.
 
 ## APK instalável
 
-**APK ainda não gerado:** o ambiente está sem Java/Android SDK e sem login Expo.
-O perfil `preview` de [eas.json](eas.json) está configurado como `internal` / `apk`;
-nome, identificador `br.edu.campusconectado.demo` e ícone próprio estão em app.json.
+**APK gerado e verificado:** [baixar CampusConectado.apk](https://expo.dev/artifacts/eas/T61Y6cOqc-xKsdsVOnkqWaqcB8OwSKVENcbh7urxQzM.apk).
+Arquivo local: `artifacts/CampusConectado.apk` (102.270.223 bytes, 97,53 MiB).
+O link EAS tem expiração prevista em 21/11/2026; guarde a cópia local.
 
-Para gerar pela cota gratuita Expo, autentique e execute:
+Build release standalone, com bundle, fontes, seed e SQLite incorporados;
+não requer Expo Go nem servidor Metro. Assinatura APK v2 validada com
+`apksigner verify --verbose --print-certs`; manifesto conferido com `aapt`:
+Campus Conectado 1.0.0 (1), `br.edu.campusconectado.demo`, Android 7.0+,
+arquiteturas ARM64, ARMv7, x86 e x86_64, sem `debuggable`.
+
+SHA-256 do APK:
+`3c88675355634760756ff053647dc861d75ab66eca20fffccf92bf2b3cdd9ce8`.
+O arquivo `.sha256` está junto da cópia local.
+
+O build usou uma unidade da cota Android do plano Free, com custo adicional
+estimado de zero. Evidência em [apk-verification.json](docs/evidence/apk-verification.json).
+Não houve instalação ou execução em aparelho/emulador: nenhum estava conectado.
+
+O perfil `preview` de [eas.json](eas.json) usa `internal` / `apk`;
+nome, identificador e ícone próprio estão em app.json. Para gerar outra versão:
 
 ```powershell
 npx --yes eas-cli@latest login
 npx --yes eas-cli@latest build --platform android --profile preview
 ```
 
-Na primeira execução, permita criar o projeto e gerar a keystore Android.
-Use apenas a cota gratuita; se houver cobrança/cota esgotada, interrompa.
-Ao concluir, baixe o APK pelo link do build e salve como `CampusConectado.apk`.
-Ele deve conter o bundle e funcionar sem Expo Go/Metro; isso ainda precisa ser
-verificado no artefato real. Não há APK anexado nem instalação Android testada.
+O projeto Expo já está vinculado e a keystore fica no serviço de credenciais
+do EAS, fora do repositório. Use apenas a cota gratuita; não aceite cobrança.
+Baixe o novo artefato pelo link informado ao final do build.
 
 Transfira o APK ao celular, abra-o e permita a instalação pelo gerenciador de
 arquivos quando o Android pedir. Alternativa com Platform Tools:

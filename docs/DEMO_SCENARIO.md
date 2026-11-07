@@ -3,7 +3,8 @@
 ## Preparar e apresentar
 
 - Inicie `npx expo start` e abra a versão disponível. No ambiente desta entrega,
-  os fluxos foram executados no navegador; instalação Android/APK está pendente.
+  os fluxos foram executados no navegador. O APK já está disponível; instalação
+  e execução Android permanecem pendentes por ausência de aparelho/emulador.
 - Se estiver reapresentando, use "Restaurar dados da demo" no build de
   desenvolvimento, confirmando a substituição dos dados. Esse controle não
   aparece no APK release. Não limpe dados pessoais para montar uma demo.

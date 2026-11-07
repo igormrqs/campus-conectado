@@ -1,5 +1,8 @@
 # Relatório de dados — Campus Conectado
 
+Registro da entrega inicial do Worker A, anterior ao build final. Para o estado
+atual do APK, consulte `APK_BUILD.md` e `VALIDATION.md`.
+
 Worker A (OpenCode). Contrato v1 preservado em `src/features/tasks/types.ts`;
 nenhuma tela, token, tipo público, `package.json` ou lock foi alterado.
 

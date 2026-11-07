@@ -1,0 +1,50 @@
+{
+  "verifiedAt": "2026-11-07T19:55:06.8931376Z",
+  "buildId": "17fa2dc9-4d6e-426d-96b5-7e25f5f9e4fe",
+  "status": "FINISHED",
+  "completedAt": "2026-11-07T19:49:18.401Z",
+  "sourceCommit": "340fa756818adcaf373dea083f04fee22a946122",
+  "downloadUrl": "https://expo.dev/artifacts/eas/T61Y6cOqc-xKsdsVOnkqWaqcB8OwSKVENcbh7urxQzM.apk",
+  "expiresAt": "2026-11-21T19:27:56.852Z",
+  "localFile": "artifacts/CampusConectado.apk",
+  "bytes": 102270223,
+  "sha256": "3c88675355634760756ff053647dc861d75ab66eca20fffccf92bf2b3cdd9ce8",
+  "signatureVerified": true,
+  "signatureScheme": "APK v2",
+  "certificateSha256": "c69d22cdadce3b9b85f7e1a7d0b65ef1bb7dafc4f03ba2dede75e5bedf79025a",
+  "package": "br.edu.campusconectado.demo",
+  "appName": "Campus Conectado",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "minSdk": 24,
+  "targetSdk": 36,
+  "debuggable": false,
+  "architectures": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86",
+    "x86_64"
+  ],
+  "bundle": "assets/index.android.bundle",
+  "bundleBytes": 3745172,
+  "seedAndStorageMarkers": [
+    "Implementar tabela hash",
+    "Registrar ata da sprint",
+    "campus-conectado/tasks/v1"
+  ],
+  "fontFiles": 34,
+  "dexFiles": 1,
+  "sqliteLibraries": [
+    "lib/arm64-v8a/libexpo-sqlite.so",
+    "lib/armeabi-v7a/libexpo-sqlite.so",
+    "lib/x86/libexpo-sqlite.so",
+    "lib/x86_64/libexpo-sqlite.so"
+  ],
+  "plan": "Free",
+  "androidBuildsUsed": 1,
+  "additionalCostCents": 0,
+  "deviceInstallationTested": false,
+  "deviceExecutionTested": false,
+  "deviceLimitation": "Nenhum aparelho ou emulador Android conectado",
+  "tools": "Android Build Tools 36.0.0 (apksigner 0.9, aapt) e Temurin JRE 21 portateis com checksums verificados"
+}

@@ -1,5 +1,8 @@
 # Relatório de UI e Motion — Task B (Antigravity)
 
+Registro do worker antes da entrega final. Fontes, navegação, ícones e app.json
+já foram integrados pelo coordenador; estado atual em `VALIDATION.md`.
+
 **Projeto:** Campus Conectado (MVP Nativo)  
 **Worker:** Antigravity (Worker B — Visual & Motion)  
 **Data:** 2026-11-07  
